@@ -14,7 +14,7 @@ import java.util.Random;
 /**
  * Beispiel aus Labor 1
  */
-public class BiggestBuilding implements Agent {
+public class Labor1Agent implements Agent {
   @Override
   public String name() {
     return  "Biggest Building Agent";
