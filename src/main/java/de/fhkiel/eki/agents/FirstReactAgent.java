@@ -22,6 +22,7 @@ public class FirstReactAgent implements Agent {
         // get the score of the biggest building
         final int biggestScore = game.getPlacableBuildings()
                 .stream()
+                .filter(building -> !building.getPossiblePlacements(game).isEmpty())
                 .mapToInt(Building::score)
                 .max()
                 .orElse(-1);
@@ -90,7 +91,7 @@ public class FirstReactAgent implements Agent {
         // Rule 2: Try to place block in near proximity to your other blocks
 
 
-        // get the List of biggest buildings
+        // get the List of biggest buildings that can be placed
         List<Building> biggestBuildings = getBiggestBuildings();
 
         // Calculate possible Placements for the biggest Buildings
@@ -106,11 +107,16 @@ public class FirstReactAgent implements Agent {
                     .stream()
                     .filter(safePlacementsOfBiggestBuildings.get()::contains)
                     .collect(Collectors.toSet());
-            return placementsThatFollowBothRules.stream().findFirst();
+            //noinspection OptionalGetWithoutIsPresent
+            return Optional.of(placementsThatFollowBothRules.stream().skip(new Random().nextInt(placementsThatFollowBothRules.size())).findFirst().get());
         } else if (safePlacementsOfBiggestBuildings.isPresent()) {
-            return safePlacementsOfBiggestBuildings.get().stream().findFirst();
+            List<Placement> list = safePlacementsOfBiggestBuildings.get();
+            //noinspection OptionalGetWithoutIsPresent
+            return Optional.of(list.stream().skip(new Random().nextInt(list.size())).findFirst().get());
         } else if (placementsOfBiggestBuildings.isPresent()){
-            return  placementsOfBiggestBuildings.get().stream().findFirst();
+            List<Placement> list = placementsOfBiggestBuildings.get();
+            //noinspection OptionalGetWithoutIsPresent
+            return Optional.of(list.stream().skip(new Random().nextInt(list.size())).findFirst().get());
         }
 
 
