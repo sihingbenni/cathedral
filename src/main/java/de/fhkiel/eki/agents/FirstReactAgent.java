@@ -18,7 +18,7 @@ public class FirstReactAgent implements Agent {
     /**
      * @return {@link List<Building>} of the biggest Buildings available to play
      */
-    private List<Building> getBiggestBuildings() {
+    private Optional<List<Building>> getBiggestBuildings() {
         // get the score of the biggest building
         final int biggestScore = game.getPlacableBuildings()
                 .stream()
@@ -26,10 +26,14 @@ public class FirstReactAgent implements Agent {
                 .mapToInt(Building::score)
                 .max()
                 .orElse(-1);
-        return game.getPlacableBuildings()
+        if (biggestScore < 0) {
+            return Optional.empty();
+        }
+        return Optional.of(game.getPlacableBuildings()
                 .stream()
+                .filter(building -> !building.getPossiblePlacements(game).isEmpty())
                 .filter(building -> building.score() == biggestScore)
-                .toList();
+                .toList());
     }
 
     /**
@@ -68,7 +72,7 @@ public class FirstReactAgent implements Agent {
                         // position is safe, if building is next to other owned building or cathedral
                         .anyMatch(position ->
                                 placement.building().getColor() == game.getBoard().getField()[position.y()][position.x()]
-                                || Color.Blue == game.getBoard().getField()[position.x()][position.y()])
+                                || Color.Blue == game.getBoard().getField()[position.y()][position.x()])
                 ) {
                     safePlacements.add(placement);
                 }
@@ -92,13 +96,17 @@ public class FirstReactAgent implements Agent {
 
 
         // get the List of biggest buildings that can be placed
-        List<Building> biggestBuildings = getBiggestBuildings();
+        Optional<List<Building>> biggestBuildings = getBiggestBuildings();
+
+        if (biggestBuildings.isEmpty()) {
+            return Optional.empty();
+        }
 
         // Calculate possible Placements for the biggest Buildings
-        Optional<List<Placement>> placementsOfBiggestBuildings = getPlacementsForBuildings(biggestBuildings);
+        Optional<List<Placement>> placementsOfBiggestBuildings = getPlacementsForBuildings(biggestBuildings.get());
 
         // Calculate safe Placements for the biggest Buildings
-        Optional<List<Placement>> safePlacementsOfBiggestBuildings = getAllSafePlacements(biggestBuildings);
+        Optional<List<Placement>> safePlacementsOfBiggestBuildings = getAllSafePlacements(biggestBuildings.get());
 
 
         if (safePlacementsOfBiggestBuildings.isPresent() && placementsOfBiggestBuildings.isPresent()) {
