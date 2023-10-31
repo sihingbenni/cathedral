@@ -1,21 +1,17 @@
 package de.fhkiel.eki.boffin;
 
-import de.fhkiel.ki.cathedral.game.Color;
-import de.fhkiel.ki.cathedral.game.Game;
+import de.fhkiel.ki.cathedral.game.*;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class Helper {
-
-    private static Helper instance;
 
     private final Game game;
 
     Helper(Game game) {
         this.game = game;
-        instance = this;
-    }
-
-    public static Helper getInstance() {
-        return instance;
     }
 
     Color getEnemyColor() {
@@ -30,7 +26,58 @@ public class Helper {
         return myColor;
     }
 
+    Color flipColor(Color color) {
+        if (color == Color.Black) {
+            return Color.White;
+        } else {
+            return Color.Black;
+        }
+    }
+
+    int getScore(Color color) {
+        return game.score().get(color);
+    }
+
     void log(String logString) {
         System.out.println(logString);
+    }
+
+    Board getBoard() {
+        return game.getBoard();
+    }
+
+    void printBoard(Board board) {
+        System.out.println("---- Board for " + getMyColor().name() + " ----");
+        for (Color[] colors : board.getField()) {
+            for (Color color : colors) {
+                System.out.print(color);
+            }
+            System.out.println();
+        }
+        System.out.println("---------------");
+    }
+
+    public Set<Placement> getAvailableMovesFor(Color color) {
+        Set<Placement> availableMoves = new HashSet<>();
+        List<Building> placeableBuildings = game.getPlacableBuildings(color);
+        for (Building placableBuilding : placeableBuildings) {
+            availableMoves.addAll(placableBuilding.getAllPossiblePlacements());
+        }
+        return availableMoves;
+    }
+
+    public boolean tryMove(Placement availableMove) {
+        game.ignoreRules(true);
+        return game.takeTurn(availableMove);
+    }
+
+    public void undoLastMove() {
+        game.undoLastTurn();
+    }
+
+    public Color evalColor(Color color) {
+        if (color == Color.Blue) {
+            return Color.White;
+        } else return color;
     }
 }
