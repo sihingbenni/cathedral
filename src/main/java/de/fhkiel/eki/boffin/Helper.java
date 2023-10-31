@@ -23,7 +23,11 @@ public class Helper {
     }
 
     Color getMyColor() {
-        return game.getCurrentPlayer();
+        Color myColor = game.getCurrentPlayer();
+        if (myColor == Color.Blue) {
+            return Color.White;
+        }
+        return myColor;
     }
 
     void log(String logString) {
