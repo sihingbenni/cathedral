@@ -15,7 +15,7 @@ public class Evaluator {
 
     Evaluator(Game game, String turn) {
         helper = new Helper(game);
-        if (Objects.equals(turn, "this turn")) {
+        if (Objects.equals(turn, "thisTurn")) {
             this.myColor = helper.getMyColor();
             this.enemyColor = helper.getEnemyColor();
         } else {
