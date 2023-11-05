@@ -32,7 +32,7 @@ public class Boffin implements Agent {
         // evaluate all possible placements
         possiblePlacements.forEach(placement -> {
             if (game.takeTurn(placement)) {
-                int eval = evaluateGameState(game, getEvaluatorForLastTurn(game));
+                int eval = evaluateGameState(getEvaluatorForLastTurn(game));
                 calculatedPlacements.put(eval, placement);
                 game.undoLastTurn();
             }
@@ -47,7 +47,7 @@ public class Boffin implements Agent {
     @Override
     public String evaluateLastTurn(Game game) {
 
-        return "Evaluation score for " + game.getCurrentPlayer().name() + ": " + evaluateGameState(game, getEvaluatorForThisTurn(game));
+        return "Evaluation score for " + game.getCurrentPlayer().name() + ": " + evaluateGameState(getEvaluatorForThisTurn(game));
     }
 
     private Evaluator getEvaluatorForThisTurn(Game game) {
@@ -58,7 +58,7 @@ public class Boffin implements Agent {
         return new Evaluator(game, "lastTurn");
     }
 
-    private int evaluateGameState(Game game, Evaluator eval) {
+    private int evaluateGameState(Evaluator eval) {
 
         int scoreEval = eval.score();
         int areaEval = eval.area();
