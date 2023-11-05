@@ -41,7 +41,7 @@ public class Boffin implements Agent {
         int bestEvalScore = Collections.max(calculatedPlacements.keySet());
 
         // return the placement with the best score
-        return Optional.ofNullable(calculatedPlacements.get(bestEvalScore));
+        return Optional.of(calculatedPlacements.get(bestEvalScore));
     }
 
     @Override
