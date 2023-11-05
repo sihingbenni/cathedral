@@ -27,6 +27,10 @@ public class Boffin implements Agent {
                 .flatMap(Collection::stream)
                 .toList();
 
+        if (possiblePlacements.isEmpty()) {
+            return Optional.empty();
+        }
+
         Map<Integer, Placement> calculatedPlacements = new HashMap<>();
 
         // evaluate all possible placements
@@ -37,6 +41,7 @@ public class Boffin implements Agent {
                 game.undoLastTurn();
             }
         });
+
         // get the score of the best-evaluated placement
         int bestEvalScore = Collections.max(calculatedPlacements.keySet());
 
