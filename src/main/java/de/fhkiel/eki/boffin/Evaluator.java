@@ -52,14 +52,12 @@ public class Evaluator {
 
 
     public int potentialArea() {
-        System.out.println("----- Potential Area -----");
-
         int myPotArea = potentialAreaInNextTurn(myColor);
-        System.out.println("My Potential Area:      " + myPotArea);
-
         int enemyPotArea = potentialAreaInNextTurn(enemyColor);
-        System.out.println("Enemy Potential Area:   " + enemyPotArea);
 
+//        System.out.println("----- Potential Area -----");
+//        System.out.println("My Potential Area:      " + myPotArea);
+//        System.out.println("Enemy Potential Area:   " + enemyPotArea);
         return myPotArea - enemyPotArea;
     }
 
