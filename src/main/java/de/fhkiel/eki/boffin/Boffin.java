@@ -25,8 +25,8 @@ public class Boffin implements Agent {
         console.println("Calculating turn Nr: " + game.lastTurn().getTurnNumber() + " for " + game.getCurrentPlayer().name() + "...");
 
         // get all possible placements
-        List<Building> placeableBuildings = game.getPlacableBuildings();
-        List<Placement> possiblePlacements = placeableBuildings.stream().map(building -> building.getPossiblePlacements(game)).flatMap(Collection::stream).toList();
+        Set<Building> placeableBuildings = new HashSet<>(game.getPlacableBuildings());
+        Set<Placement> possiblePlacements = new HashSet<>(placeableBuildings.stream().map(building -> building.getPossiblePlacements(game)).flatMap(Collection::stream).toList());
 
         System.out.println(game.getCurrentPlayer().name() + " has " + possiblePlacements.size() + " moves.");
 
@@ -59,10 +59,10 @@ public class Boffin implements Agent {
 
         System.out.println("My best score is: " + bestEvalScore);
 
-        List<Placement> bestPlacements = possiblePlacements.stream().filter(placement -> calculatedPlacements.get(placement) == bestEvalScore).toList();
+        Set<Placement> bestPlacements = new HashSet<>(possiblePlacements.stream().filter(placement -> calculatedPlacements.get(placement) == bestEvalScore).toList());
 
         // return the placement with the best score
-        return Optional.of(bestPlacements.get(new Random().nextInt(bestPlacements.size())));
+        return Optional.of(bestPlacements.stream().toList().get(new Random().nextInt(bestPlacements.size())));
     }
 
     @Override
