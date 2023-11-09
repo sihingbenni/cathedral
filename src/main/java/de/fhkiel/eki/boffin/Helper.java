@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 public class Helper {
 
@@ -47,15 +48,13 @@ public class Helper {
         return game.getBoard();
     }
 
-    void printBoard(Board board) {
-        System.out.println("---- Board for " + getMyColor().name() + " ----");
+    static void printBoard(Board board) {
         for (Color[] colors : board.getField()) {
             for (Color color : colors) {
                 System.out.print(color);
             }
             System.out.println();
         }
-        System.out.println("---------------");
     }
 
     public Set<Placement> getAvailableMovesFor(Color color) {
@@ -69,7 +68,9 @@ public class Helper {
 
     public boolean tryMove(Placement availableMove) {
         game.ignoreRules(true);
-        return game.takeTurn(availableMove);
+        boolean moveSuccess = game.takeTurn(availableMove);
+        game.ignoreRules(false);
+        return moveSuccess;
     }
 
     public void undoLastMove() {
@@ -82,9 +83,17 @@ public class Helper {
         } else return color;
     }
 
-    public static List<Placement> getPossiblePlacements(Game game) {
-        List<Building> placeableBuildings = game.getPlacableBuildings();
-        return placeableBuildings.stream().map(building -> building.getPossiblePlacements(game)).flatMap(Collection::stream).toList();
+    public static Set<Placement> getPossiblePlacements(Game game) {
+        Set<Building> placeableBuildings = new HashSet<>(game.getPlacableBuildings());
+//        int turnNumber = game.lastTurn().getTurnNumber();
+        int turnNumber = 99;
+        if (turnNumber > 0 && turnNumber <= 3) {
+            Set<Building> buildings = new HashSet<>(placeableBuildings.stream().filter(building -> building.score() == 5).toList());
+            System.out.println(buildings);
+            return new HashSet<>(buildings.stream().map(building -> building.getPossiblePlacements(game)).flatMap(Collection::stream).toList());
+        } else {
+            return new HashSet<>(placeableBuildings.stream().map(building -> building.getPossiblePlacements(game)).flatMap(Collection::stream).toList());
+        }
     }
 
 }
