@@ -74,4 +74,6 @@ public class Evaluator {
         }
         return whiteOwnedArea - blackOwnedArea;
     }
+
+
 }

@@ -5,6 +5,7 @@ import de.fhkiel.ki.cathedral.game.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Collection;
 
 public class Helper {
 
@@ -80,4 +81,10 @@ public class Helper {
             return Color.White;
         } else return color;
     }
+
+    public static List<Placement> getPossiblePlacements(Game game) {
+        List<Building> placeableBuildings = game.getPlacableBuildings();
+        return placeableBuildings.stream().map(building -> building.getPossiblePlacements(game)).flatMap(Collection::stream).toList();
+    }
+
 }
