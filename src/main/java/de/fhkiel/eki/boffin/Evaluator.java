@@ -5,43 +5,44 @@ import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
 
-import java.util.Objects;
 import java.util.Set;
 
 public class Evaluator {
     private final Helper helper;
-    public final Color myColor;
-    private final Color enemyColor;
 
-    Evaluator(Game game, String turn) {
+    Evaluator(Game game) {
         helper = new Helper(game);
-        if (Objects.equals(turn, "thisTurn")) {
-            this.myColor = helper.getMyColor();
-            this.enemyColor = helper.getEnemyColor();
-        } else {
-            this.myColor = helper.getEnemyColor();
-            this.enemyColor = helper.getMyColor();
-        }
-
     }
 
     public int score() {
-        return helper.getScore(enemyColor) - helper.getScore(myColor);
+        // White wants to maximise its EvaluationScore. If black is subtracted from white we get a negative number.
+        // In order to flip the negative number to a positive one and achieve that white maximise it's EvaluationScore,
+        // we subtract white from black.
+        return helper.getScore(Color.Black) - helper.getScore(Color.White);
     }
 
     public int potentialAreaInNextTurn(Color color) {
-        int myCurrentArea = areaFor(color);
-        int potAreaEval = myCurrentArea;
+        int currentArea = area();
+        int potAreaEval = currentArea;
 
         // go through all possible moves, check if the area is bigger than before
         Set<Placement> availableMoves = helper.getAvailableMovesFor(color);
         for (Placement availableMove : availableMoves) {
 
             if (helper.tryMove(availableMove)) {
-                int myPotArea = areaFor(color);
+                int potArea = area();
                 // if the potential area is bigger than before, save the difference
-                if (potAreaEval < (myPotArea - myCurrentArea)) {
-                    potAreaEval = (myPotArea - myCurrentArea);
+
+                // if player white:
+                if (color == Color.White) {
+                    if (potAreaEval < (potArea - currentArea)) {
+                        potAreaEval = (potArea - currentArea);
+                    }
+                } else {
+                    // else player black
+                    if (potAreaEval > (potArea - currentArea)) {
+                        potAreaEval = (potArea - currentArea);
+                    }
                 }
                 helper.undoLastMove();
             }
@@ -52,39 +53,25 @@ public class Evaluator {
 
 
     public int potentialArea() {
-        int myPotArea = potentialAreaInNextTurn(myColor);
-        int enemyPotArea = potentialAreaInNextTurn(enemyColor);
-
-//        System.out.println("----- Potential Area -----");
-//        System.out.println("My Potential Area:      " + myPotArea);
-//        System.out.println("Enemy Potential Area:   " + enemyPotArea);
-        return myPotArea - enemyPotArea;
+        // as black potential area returns negative number, to keep it negative, we add instead of subtract
+        return potentialAreaInNextTurn(Color.White) + potentialAreaInNextTurn(Color.Black);
     }
 
     public int area() {
-        return areaFor(myColor);
-    }
-
-    private int areaFor(Color color) {
         // TODO welche Gebäude passen eigentlich in dieses Gebiet rein.
 
         Board board = helper.getBoard();
-        int countBlackOwnedArea = 0;
-        int countWhiteOwnedArea = 0;
+        int blackOwnedArea = 0;
+        int whiteOwnedArea = 0;
         for (Color[] fieldColors : board.getField()) {
             for (Color fieldColor : fieldColors) {
                 if (fieldColor == Color.Black_Owned) {
-                    countBlackOwnedArea++;
+                    blackOwnedArea++;
                 } else if (fieldColor == Color.White_Owned) {
-                    countWhiteOwnedArea++;
+                    whiteOwnedArea++;
                 }
             }
         }
-
-        if (color == Color.White) {
-            return countWhiteOwnedArea - countBlackOwnedArea;
-        } else {
-            return countBlackOwnedArea - countWhiteOwnedArea;
-        }
+        return whiteOwnedArea - blackOwnedArea;
     }
 }

@@ -2,6 +2,7 @@ package de.fhkiel.eki.boffin;
 
 import de.fhkiel.ki.cathedral.ai.Agent;
 import de.fhkiel.ki.cathedral.game.Building;
+import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
 
@@ -27,6 +28,8 @@ public class Boffin implements Agent {
         List<Building> placeableBuildings = game.getPlacableBuildings();
         List<Placement> possiblePlacements = placeableBuildings.stream().map(building -> building.getPossiblePlacements(game)).flatMap(Collection::stream).toList();
 
+        System.out.println(game.getCurrentPlayer().name() + " has " + possiblePlacements.size() + " moves.");
+
         if (possiblePlacements.isEmpty()) {
             return Optional.empty();
         }
@@ -36,14 +39,25 @@ public class Boffin implements Agent {
         // evaluate all possible placements
         possiblePlacements.forEach(placement -> {
             if (game.takeTurn(placement)) {
-                int eval = evaluateGameState(game, getEvaluatorForLastTurn(game));
+                int eval = evaluateGameState(game, new Evaluator(game));
                 calculatedPlacements.put(placement, eval);
                 game.undoLastTurn();
             }
         });
 
-        // get the score of the best-evaluated placement
-        int bestEvalScore = Collections.max(calculatedPlacements.values());
+        int bestEvalScore;
+
+
+        // get the score of the best-evaluated placement depending on color (white max; black min)
+        if (game.getCurrentPlayer() == Color.Black) {
+            bestEvalScore = Collections.min(calculatedPlacements.values());
+        } else {
+            bestEvalScore = Collections.max(calculatedPlacements.values());
+        }
+
+        System.out.println(calculatedPlacements.values());
+
+        System.out.println("My best score is: " + bestEvalScore);
 
         List<Placement> bestPlacements = possiblePlacements.stream().filter(placement -> calculatedPlacements.get(placement) == bestEvalScore).toList();
 
@@ -54,15 +68,7 @@ public class Boffin implements Agent {
     @Override
     public String evaluateLastTurn(Game game) {
 
-        return "Evaluation score for " + game.getCurrentPlayer().name() + ": " + evaluateGameState(game, getEvaluatorForThisTurn(game));
-    }
-
-    private Evaluator getEvaluatorForThisTurn(Game game) {
-        return new Evaluator(game, "thisTurn");
-    }
-
-    private Evaluator getEvaluatorForLastTurn(Game game) {
-        return new Evaluator(game, "lastTurn");
+        return "Evaluation score: " + evaluateGameState(game, new Evaluator(game));
     }
 
     private int evaluateGameState(Game game, Evaluator eval) {
@@ -73,13 +79,21 @@ public class Boffin implements Agent {
         int sum = scoreEval + areaEval + potArea;
 
 //        console.println("==================");
-//        console.println("----- Eval for " + eval.myColor.name() + " -----");
+//        console.println("----- State Eval -----");
 //        console.println("ScoreEval:\t" + scoreEval);
 //        console.println("AreaEval:\t" + areaEval);
 //        console.println("PotAreaEval:\t" + potArea);
 //        console.println("------------------------------");
 //        console.println("Sum:\t" + sum);
 //        console.println("==================");
+        System.out.println("==================");
+        System.out.println("----- State Eval -----");
+        System.out.println("ScoreEval:\t" + scoreEval);
+        System.out.println("AreaEval:\t" + areaEval);
+        System.out.println("PotAreaEval:\t" + potArea);
+        System.out.println("------------------------------");
+        System.out.println("Sum:\t" + sum);
+        System.out.println("==================");
 
         return sum;
     }
