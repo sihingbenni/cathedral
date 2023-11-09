@@ -30,10 +30,10 @@ public class Boffin implements Agent {
         console.println("Calculating turn Nr: " + game.lastTurn().getTurnNumber() + " for " + game.getCurrentPlayer().name() + "...");
 
         // get all possible placements
-        Set<Building> placeableBuildings = new HashSet<>(game.getPlacableBuildings());
+        Set<Building> placeableBuildings = new HashSet<>(game.getPlacableBuildings(game.getCurrentPlayer()));
         Set<Placement> possiblePlacements = new HashSet<>(placeableBuildings.stream().map(building -> building.getPossiblePlacements(game)).flatMap(Collection::stream).toList());
 
-        System.out.println(game.getCurrentPlayer().name() + " has " + possiblePlacements.size() + " moves.");
+        console.println(game.getCurrentPlayer().name() + " has " + possiblePlacements.size() + " possible moves.");
 
         if (possiblePlacements.isEmpty()) {
             return Optional.empty();
@@ -44,7 +44,7 @@ public class Boffin implements Agent {
         // evaluate all possible placements
         possiblePlacements.forEach(placement -> {
             if (game.takeTurn(placement)) {
-                int eval = evaluateGameState(game, new Evaluator(game));
+                int eval = evaluateGameState(game, new Evaluator(game), false);
                 calculatedPlacements.put(placement, eval);
                 game.undoLastTurn();
             }
@@ -73,31 +73,29 @@ public class Boffin implements Agent {
     @Override
     public String evaluateLastTurn(Game game) {
 
-        return "Evaluation score: " + evaluateGameState(game, new Evaluator(game));
+        return "Evaluation score: " + evaluateGameState(game, new Evaluator(game), true);
     }
 
-    private int evaluateGameState(Game game, Evaluator eval) {
+    private int evaluateGameState(Game game, Evaluator eval, boolean printEval) {
 
         int scoreEval = eval.score();
         int areaEval = eval.area();
         int potArea = game.lastTurn().getTurnNumber() < 3 ? 0 : eval.potentialArea();
         int sum = scoreEval + areaEval + potArea;
+        if (printEval) {
 
-//        console.println("==================");
-//        console.println("----- State Eval -----");
-//        console.println("ScoreEval:\t" + scoreEval);
-//        console.println("AreaEval:\t" + areaEval);
-//        console.println("PotAreaEval:\t" + potArea);
-//        console.println("------------------------------");
-//        console.println("Sum:\t" + sum);
-//        console.println("==================");
-        System.out.println("==================");
-        System.out.println("----- State Eval -----");
-        System.out.println("ScoreEval:\t" + scoreEval);
-        System.out.println("AreaEval:\t" + areaEval);
-        System.out.println("PotAreaEval:\t" + potArea);
-        System.out.println("------------------------------");
-        System.out.println("Sum:\t" + sum);
+            console.println("==================");
+            console.println("----- State Eval -----");
+            console.println("ScoreEval:\t" + scoreEval);
+            console.println("AreaEval:\t" + areaEval);
+            console.println("PotAreaEval:\t" + potArea);
+            console.println("------------------------------");
+            console.println("Sum:\t" + sum);
+            console.println("==================");
+        }
+        System.out.println("====State Eval====");
+        System.out.println("ScoreEval + AreaEval + PotAreaEval = Sum");
+        System.out.println(scoreEval + " + " + areaEval + " + " + potArea + " = " + sum);
         System.out.println("==================");
 
         return sum;

@@ -15,8 +15,9 @@ public class Evaluator {
     }
 
     public int score() {
-        // White wants to maximise its EvaluationScore. If black is subtracted from white we get a negative number.
-        // In order to flip the negative number to a positive one and achieve that white maximise it's EvaluationScore,
+        // White wants to maximize its EvaluationScore.
+        // If black is subtracted from white, we get a negative number.
+        // To flip the negative number to a positive one and achieve that white maximizes its EvaluationScore,
         // we subtract white from black.
         return helper.getScore(Color.Black) - helper.getScore(Color.White);
     }
@@ -53,7 +54,7 @@ public class Evaluator {
 
 
     public int potentialArea() {
-        // as black potential area returns negative number, to keep it negative, we add instead of subtract
+        // as black potential area returns negative number, to keep it negative, we add instead of subtracting
         return potentialAreaInNextTurn(Color.White) + potentialAreaInNextTurn(Color.Black);
     }
 

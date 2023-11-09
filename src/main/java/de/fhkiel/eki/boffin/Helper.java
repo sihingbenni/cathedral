@@ -2,11 +2,9 @@ package de.fhkiel.eki.boffin;
 
 import de.fhkiel.ki.cathedral.game.*;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Helper {
 
@@ -59,7 +57,7 @@ public class Helper {
 
     public Set<Placement> getAvailableMovesFor(Color color) {
         Set<Placement> availableMoves = new HashSet<>();
-        List<Building> placeableBuildings = game.getPlacableBuildings(color);
+        Set<Building> placeableBuildings = new HashSet<>(game.getPlacableBuildings(color));
         for (Building placableBuilding : placeableBuildings) {
             availableMoves.addAll(placableBuilding.getAllPossiblePlacements());
         }
@@ -85,8 +83,8 @@ public class Helper {
 
     public static Set<Placement> getPossiblePlacements(Game game) {
         Set<Building> placeableBuildings = new HashSet<>(game.getPlacableBuildings());
-//        int turnNumber = game.lastTurn().getTurnNumber();
-        int turnNumber = 99;
+        int turnNumber = game.lastTurn().getTurnNumber();
+
         if (turnNumber > 0 && turnNumber <= 3) {
             Set<Building> buildings = new HashSet<>(placeableBuildings.stream().filter(building -> building.score() == 5).toList());
             System.out.println(buildings);
