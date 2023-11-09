@@ -20,6 +20,11 @@ public class Boffin implements Agent {
     }
 
     @Override
+    public String name() {
+        return "Boffin";
+    }
+
+    @Override
     public Optional<Placement> calculateTurn(Game game, int timeForTurn, int timeBonus) {
         // TODO: implement
         console.println("Calculating turn Nr: " + game.lastTurn().getTurnNumber() + " for " + game.getCurrentPlayer().name() + "...");
