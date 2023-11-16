@@ -4,6 +4,7 @@ import de.fhkiel.eki.agents.FirstReactAgent;
 import de.fhkiel.eki.boffin.Baggins;
 import de.fhkiel.eki.boffin.Boffin;
 import de.fhkiel.ki.cathedral.gui.CathedralGUI;
+import de.fhkiel.ki.cathedral.gui.Settings;
 
 public class Main {
     public static void main(String[] args) {

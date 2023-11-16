@@ -60,10 +60,6 @@ public class Boffin implements Agent {
             bestEvalScore = Collections.max(calculatedPlacements.values());
         }
 
-        System.out.println(calculatedPlacements.values());
-
-        System.out.println("My best score is: " + bestEvalScore);
-
         Set<Placement> bestPlacements = new HashSet<>(possiblePlacements.stream().filter(placement -> calculatedPlacements.get(placement) == bestEvalScore).toList());
 
         // return the placement with the best score
@@ -93,10 +89,10 @@ public class Boffin implements Agent {
             console.println("Sum:\t" + sum);
             console.println("==================");
         }
-        System.out.println("====State Eval====");
-        System.out.println("ScoreEval + AreaEval + PotAreaEval = Sum");
-        System.out.println(scoreEval + " + " + areaEval + " + " + potArea + " = " + sum);
-        System.out.println("==================");
+        // System.out.println("====State Eval====");
+        // System.out.println("ScoreEval + AreaEval + PotAreaEval = Sum");
+        // System.out.println(scoreEval + " + " + areaEval + " + " + potArea + " = " + sum);
+        // System.out.println("==================");
 
         return sum;
     }

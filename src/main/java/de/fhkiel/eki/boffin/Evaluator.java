@@ -1,9 +1,6 @@
 package de.fhkiel.eki.boffin;
 
-import de.fhkiel.ki.cathedral.game.Board;
-import de.fhkiel.ki.cathedral.game.Color;
-import de.fhkiel.ki.cathedral.game.Game;
-import de.fhkiel.ki.cathedral.game.Placement;
+import de.fhkiel.ki.cathedral.game.*;
 
 import java.util.Set;
 
@@ -29,6 +26,28 @@ public class Evaluator {
         // go through all possible moves, check if the area is bigger than before
         Set<Placement> availableMoves = helper.getAvailableMovesFor(color);
         for (Placement availableMove : availableMoves) {
+
+            // only placements, that connect to another building or wall, need to be checked
+            boolean doNotCheck = true;
+
+            for (Position position : availableMove.building().corners(availableMove.direction())) {
+                Position testPosition = new Position(availableMove.x() + position.x(), availableMove.y() + position.y());
+                // check for placement if it has connecting wall
+                if (testPosition.x() < 0 || testPosition.x() > 9 || testPosition.y() < 0 || testPosition.y() > 9) {
+                    doNotCheck = false;
+                    break;
+                }
+                // check if the color next to the brick is the same as the brick
+                Color colorAtTestPosition = helper.getBoard().getField()[testPosition.x()][testPosition.y()];
+                if (colorAtTestPosition == availableMove.building().getColor()) {
+                    doNotCheck = false;
+                    break;
+                }
+            }
+
+            if (doNotCheck) {
+                continue;
+            }
 
             if (helper.tryMove(availableMove)) {
                 int potArea = area();
