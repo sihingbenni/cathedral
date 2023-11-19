@@ -24,7 +24,8 @@ public class Boffin implements Agent {
 
     @Override
     public Optional<Placement> calculateTurn(Game game, int timeForTurn, int timeBonus) {
-        console.println("Calculating turn Nr: " + game.lastTurn().getTurnNumber() + " for " + game.getCurrentPlayer().name() + "...");
+        int lastTurnNumber = game.lastTurn().getTurnNumber();
+        console.println("Calculating turn Nr: " + lastTurnNumber + " for " + game.getCurrentPlayer().name() + "...");
 
         // get all possible placements
         Set<Building> placeableBuildings = new HashSet<>(game.getPlacableBuildings(game.getCurrentPlayer()));
@@ -35,6 +36,15 @@ public class Boffin implements Agent {
         if (possiblePlacements.isEmpty()) {
             return Optional.empty();
         }
+
+        // if it's the first turn for black, play a big building at a wall far away from the cathedral
+
+        if (lastTurnNumber == 1 && game.getCurrentPlayer() == Color.Black) {
+            // TODO implement
+            // maybe mirror the board and find the place of the cathedral and then place the building there
+        }
+
+
         Map<Placement, Integer> calculatedPlacements;
 
         // Multithreaded evaluation of the placements
@@ -57,8 +67,6 @@ public class Boffin implements Agent {
         // filter the calculatedPlacements map so that only the placements with the best score remain
         List<Placement> bestPlacements = calculatedPlacements.keySet().stream().filter(placement -> calculatedPlacements.get(placement) == bestEvalScore).toList();
 
-        System.out.println(bestPlacements.size());
-
         // return the placement with the best score
         return Optional.of(bestPlacements.get(new Random().nextInt(bestPlacements.size())));
     }
@@ -73,7 +81,8 @@ public class Boffin implements Agent {
 
         int scoreEval = eval.score(board);
         int areaEval = eval.area(board);
-        int potArea = lastTurnNumber < 2 ? 0 : eval.potentialArea();
+        // the game does not allow capturing area until the 2nd turn so no need to calculate potential area
+        int potArea = lastTurnNumber <= 1 ? 0 : eval.potentialArea();
         int sum = scoreEval + areaEval + potArea;
 
         // print the evaluation if desired

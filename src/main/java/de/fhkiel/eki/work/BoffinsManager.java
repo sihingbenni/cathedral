@@ -16,7 +16,7 @@ public class BoffinsManager {
 
     public BoffinsManager() {
         // Arbeiter einstellen
-        for (int i = 1; i <= 11; ++i) {
+        for (int i = 1; i <= 17; ++i) {
             Worker worker = new Worker("Worker " + i);
             worker.start();
             workers.add(worker);
