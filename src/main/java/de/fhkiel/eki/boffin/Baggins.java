@@ -5,9 +5,9 @@ import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
 
 import java.io.PrintStream;
-import java.util.Set;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 
 
 public class Baggins implements Agent {
@@ -41,9 +41,9 @@ public class Baggins implements Agent {
         return Optional.of(evalPair.getPlacement());
     }
 
-    class EvalPair {
-        private int eval;
-        private Placement placement;
+    static class EvalPair {
+        private final int eval;
+        private final Placement placement;
 
         EvalPair(int eval, Placement placement) {
             this.eval = eval;
@@ -54,16 +54,8 @@ public class Baggins implements Agent {
             return eval;
         }
 
-        public void setBest(int best) {
-            this.eval = best;
-        }
-
         public Placement getPlacement() {
             return placement;
-        }
-
-        public void setPlacement(Placement placement) {
-            this.placement = placement;
         }
 
 
@@ -72,7 +64,7 @@ public class Baggins implements Agent {
     private EvalPair minimax(Game game, int depth, int alpha, int beta) {
         // termination condition
         if (game.isFinished() || depth == 0) {
-            return new EvalPair(evaluateGameState(game, new Evaluator(game)), null);
+            return new EvalPair(evaluateGameState(game, new Evaluator(game.getBoard())), null);
         }
 
         // switch for each color
@@ -145,23 +137,17 @@ public class Baggins implements Agent {
     @Override
     public String evaluateLastTurn(Game game) {
 
-        return "Evaluation score: " + evaluateGameState(game, new Evaluator(game));
+        return "Evaluation score: " + evaluateGameState(game, new Evaluator(game.getBoard()));
     }
 
     private int evaluateGameState(Game game, Evaluator eval) {
 
-        int scoreEval = eval.score();
-        int areaEval = eval.area();
+        int scoreEval = eval.score(game.getBoard());
+        int areaEval = eval.area(game.getBoard());
 //        int potArea = game.lastTurn().getTurnNumber() < 3 ? 0 : eval.potentialArea();
-//        int sum = scoreEval + areaEval + potArea;
-        int sum = scoreEval + areaEval;
 
-//        System.out.println("====State Eval====");
-//        System.out.println("ScoreEval + AreaEval + PotAreaEval = Sum");
-//        System.out.println(scoreEval + " + " + areaEval + " + " + potArea + " = " + sum);
-//        System.out.println("==================");
 
-        return sum;
+        return scoreEval + areaEval;
     }
 
 }

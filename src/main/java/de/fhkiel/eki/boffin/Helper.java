@@ -8,42 +8,14 @@ import java.util.Set;
 
 public class Helper {
 
-    private final Game game;
+    private final Board board;
 
-    Helper(Game game) {
-        this.game = game;
-    }
-
-    Color getEnemyColor() {
-        return game.getCurrentPlayer() == Color.White ? Color.Black : Color.White;
-    }
-
-    Color getMyColor() {
-        Color myColor = game.getCurrentPlayer();
-        if (myColor == Color.Blue) {
-            return Color.White;
-        }
-        return myColor;
-    }
-
-    Color flipColor(Color color) {
-        if (color == Color.Black) {
-            return Color.White;
-        } else {
-            return Color.Black;
-        }
-    }
-
-    int getScore(Color color) {
-        return game.score().get(color);
-    }
-
-    void log(String logString) {
-        System.out.println(logString);
+    Helper(Board board) {
+        this.board = board;
     }
 
     Board getBoard() {
-        return game.getBoard();
+        return board;
     }
 
     static void printBoard(Board board) {
@@ -57,28 +29,11 @@ public class Helper {
 
     public Set<Placement> getAvailableMovesFor(Color color) {
         Set<Placement> availableMoves = new HashSet<>();
-        Set<Building> placeableBuildings = new HashSet<>(game.getPlacableBuildings(color));
+        Set<Building> placeableBuildings = new HashSet<>(board.getPlacableBuildings(color));
         for (Building placableBuilding : placeableBuildings) {
             availableMoves.addAll(placableBuilding.getAllPossiblePlacements());
         }
         return availableMoves;
-    }
-
-    public boolean tryMove(Placement availableMove) {
-        game.ignoreRules(true);
-        boolean moveSuccess = game.takeTurn(availableMove);
-        game.ignoreRules(false);
-        return moveSuccess;
-    }
-
-    public void undoLastMove() {
-        game.undoLastTurn();
-    }
-
-    public Color evalColor(Color color) {
-        if (color == Color.Blue) {
-            return Color.White;
-        } else return color;
     }
 
     public static Set<Placement> getPossiblePlacements(Game game) {
@@ -94,4 +49,22 @@ public class Helper {
         }
     }
 
+    public boolean shouldEvalPotentialAreaForPlacement(Placement placement) {
+
+        // only placements that connect to another building or wall need to be checked
+        for (Position position : placement.building().corners(placement.direction())) {
+            Position testPosition = new Position(placement.x() + position.x(), placement.y() + position.y());
+            // check for placement if it has a connecting wall
+            if (testPosition.x() < 0 || testPosition.x() > 9 || testPosition.y() < 0 || testPosition.y() > 9) {
+                return true;
+            }
+            // check if the color next to the brick is the same as the brick
+            Color colorAtTestPosition = this.board.getField()[testPosition.x()][testPosition.y()];
+            if (colorAtTestPosition == placement.building().getColor()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

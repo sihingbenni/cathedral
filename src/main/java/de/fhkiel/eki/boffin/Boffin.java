@@ -1,22 +1,20 @@
 package de.fhkiel.eki.boffin;
 
+import de.fhkiel.eki.work.BoffinsManager;
 import de.fhkiel.ki.cathedral.ai.Agent;
-import de.fhkiel.ki.cathedral.game.Building;
-import de.fhkiel.ki.cathedral.game.Color;
-import de.fhkiel.ki.cathedral.game.Game;
-import de.fhkiel.ki.cathedral.game.Placement;
+import de.fhkiel.ki.cathedral.game.*;
 
 import java.io.PrintStream;
 import java.util.*;
 
 public class Boffin implements Agent {
 
-    PrintStream console;
+    static PrintStream console;
 
     @Override
     public void initialize(Game game, PrintStream console) {
         Agent.super.initialize(game, console);
-        this.console = console;
+        Boffin.console = console;
     }
 
     @Override
@@ -26,7 +24,6 @@ public class Boffin implements Agent {
 
     @Override
     public Optional<Placement> calculateTurn(Game game, int timeForTurn, int timeBonus) {
-        // TODO: implement
         console.println("Calculating turn Nr: " + game.lastTurn().getTurnNumber() + " for " + game.getCurrentPlayer().name() + "...");
 
         // get all possible placements
@@ -38,20 +35,17 @@ public class Boffin implements Agent {
         if (possiblePlacements.isEmpty()) {
             return Optional.empty();
         }
+        Map<Placement, Integer> calculatedPlacements;
 
-        Map<Placement, Integer> calculatedPlacements = new HashMap<>();
+        // Multithreaded evaluation of the placements
+        try {
+            BoffinsManager manager = new BoffinsManager();
+            calculatedPlacements = manager.manageEvaluators(game, possiblePlacements);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
-        // evaluate all possible placements
-        possiblePlacements.forEach(placement -> {
-            if (game.takeTurn(placement)) {
-                int eval = evaluateGameState(game, new Evaluator(game), false);
-                calculatedPlacements.put(placement, eval);
-                game.undoLastTurn();
-            }
-        });
-
-        int bestEvalScore;
-
+        final int bestEvalScore;
 
         // get the score of the best-evaluated placement depending on color (white max; black min)
         if (game.getCurrentPlayer() == Color.Black) {
@@ -60,24 +54,29 @@ public class Boffin implements Agent {
             bestEvalScore = Collections.max(calculatedPlacements.values());
         }
 
-        Set<Placement> bestPlacements = new HashSet<>(possiblePlacements.stream().filter(placement -> calculatedPlacements.get(placement) == bestEvalScore).toList());
+        // filter the calculatedPlacements map so that only the placements with the best score remain
+        List<Placement> bestPlacements = calculatedPlacements.keySet().stream().filter(placement -> calculatedPlacements.get(placement) == bestEvalScore).toList();
+
+        System.out.println(bestPlacements.size());
 
         // return the placement with the best score
-        return Optional.of(bestPlacements.stream().toList().get(new Random().nextInt(bestPlacements.size())));
+        return Optional.of(bestPlacements.get(new Random().nextInt(bestPlacements.size())));
     }
 
     @Override
     public String evaluateLastTurn(Game game) {
 
-        return "Evaluation score: " + evaluateGameState(game, new Evaluator(game), true);
+        return "Evaluation score: " + evaluateGameState(game.lastTurn().getTurnNumber(), game.getBoard(), new Evaluator(game.getBoard()), true);
     }
 
-    private int evaluateGameState(Game game, Evaluator eval, boolean printEval) {
+    public static int evaluateGameState(int lastTurnNumber, Board board, Evaluator eval, boolean printEval) {
 
-        int scoreEval = eval.score();
-        int areaEval = eval.area();
-        int potArea = game.lastTurn().getTurnNumber() < 3 ? 0 : eval.potentialArea();
+        int scoreEval = eval.score(board);
+        int areaEval = eval.area(board);
+        int potArea = lastTurnNumber < 2 ? 0 : eval.potentialArea();
         int sum = scoreEval + areaEval + potArea;
+
+        // print the evaluation if desired
         if (printEval) {
 
             console.println("==================");
@@ -89,10 +88,6 @@ public class Boffin implements Agent {
             console.println("Sum:\t" + sum);
             console.println("==================");
         }
-        // System.out.println("====State Eval====");
-        // System.out.println("ScoreEval + AreaEval + PotAreaEval = Sum");
-        // System.out.println(scoreEval + " + " + areaEval + " + " + potArea + " = " + sum);
-        // System.out.println("==================");
 
         return sum;
     }
