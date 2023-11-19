@@ -21,8 +21,8 @@ public class Evaluator {
         return board.score().get(Color.Black) - board.score().get(Color.White);
     }
 
-    public int potentialAreaInNextTurn(Color color) {
-        int currentArea = area(helper.getBoard());
+    public int potentialAreaInNextTurn(Board board, Color color) {
+        int currentArea = area(board);
         int potAreaEval = currentArea;
 
         // go through all possible moves, check if the area is bigger than before
@@ -34,9 +34,9 @@ public class Evaluator {
                 continue;
             }
 
-            Board board = helper.getBoard().copy();
-            if (board.placeBuilding(availableMove)) {
-                int potArea = area(board);
+            Board boardCopy = board.copy();
+            if (boardCopy.placeBuilding(availableMove)) {
+                int potArea = area(boardCopy);
                 // if the potential area is bigger than before, save the difference
 
                 // if player white:
@@ -57,9 +57,9 @@ public class Evaluator {
     }
 
 
-    public int potentialArea() {
+    public int potentialArea(Board board) {
         // as black potential area returns negative number, to keep it negative, we add instead of subtracting
-        return potentialAreaInNextTurn(Color.White) + potentialAreaInNextTurn(Color.Black);
+        return potentialAreaInNextTurn(board, Color.White) + potentialAreaInNextTurn(board, Color.Black);
     }
 
     public int area(Board board) {

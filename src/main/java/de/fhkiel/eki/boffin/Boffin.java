@@ -81,8 +81,8 @@ public class Boffin implements Agent {
 
         int scoreEval = eval.score(board);
         int areaEval = eval.area(board);
-        // the game does not allow capturing area until the 2nd turn so no need to calculate potential area
-        int potArea = lastTurnNumber <= 1 ? 0 : eval.potentialArea();
+        // the game does not allow capturing area until the 2nd turn, so no need to calculate potential area
+        int potArea = lastTurnNumber <= 1 ? 0 : eval.potentialArea(board);
         int sum = scoreEval + areaEval + potArea;
 
         // print the evaluation if desired
