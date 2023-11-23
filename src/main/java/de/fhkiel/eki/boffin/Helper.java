@@ -14,10 +14,6 @@ public class Helper {
         this.board = board;
     }
 
-    Board getBoard() {
-        return board;
-    }
-
     static void printBoard(Board board) {
         for (Color[] colors : board.getField()) {
             for (Color color : colors) {

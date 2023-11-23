@@ -35,7 +35,7 @@ public class Evaluator {
                 continue;
             }
 
-            Board boardCopy = helper.getBoard().copy();
+            Board boardCopy = board.copy();
             if (boardCopy.placeBuilding(availableMove)) {
                 int potArea = area(boardCopy);
                 int potScore = score(boardCopy);
