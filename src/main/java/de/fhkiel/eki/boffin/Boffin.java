@@ -129,7 +129,7 @@ public class Boffin implements Agent {
         if (game.getCurrentPlayer() == Color.Black) {
             bestEvalScore = Collections.min(calculatedPlacements.values().stream().map(Evaluation::eval).toList());
         } else {
-            bestEvalScore = Collections.max(calculatedPlacements.values());
+            bestEvalScore = Collections.max(calculatedPlacements.values().stream().map(Evaluation::eval).toList());
         }
 
 

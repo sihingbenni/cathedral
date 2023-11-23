@@ -19,8 +19,8 @@ public class Evaluator {
     }
 
     public int potentialInNextTurn(Board board, Color color) {
-        int currentArea = area(board);
-        int currentScore = score(board);
+        int currentArea = area(board).eval();
+        int currentScore = score(board).eval();
         int potEval = currentArea + currentScore;
 
         // go through all possible moves, check if the area + score is bigger than before
