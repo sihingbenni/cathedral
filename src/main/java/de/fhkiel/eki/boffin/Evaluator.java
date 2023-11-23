@@ -43,12 +43,12 @@ public class Evaluator {
 
                 // if player white:
                 if (color == Color.White) {
-                    if (potEval < (potArea + potScore - currentArea - currentScore)) {
+                    if (potEval < (potArea + potScore - potEval)) {
                         potEval = (potArea + potScore);
                     }
                 } else {
                     // else player black
-                    if (potEval > (potArea + potScore - currentArea - currentScore)) {
+                    if (potEval > (potArea + potScore - potEval)) {
                         potEval = (potArea + potScore);
                     }
                 }
@@ -59,7 +59,7 @@ public class Evaluator {
     }
 
 
-    public int potentialArea(Board board) {
+    public int potentialNextTurn(Board board) {
         // as black potential area returns negative number, to keep it negative, we add instead of subtracting
         return potentialInNextTurn(board, Color.White) + potentialInNextTurn(board, Color.Black);
     }
