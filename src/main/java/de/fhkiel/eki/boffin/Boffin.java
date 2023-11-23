@@ -6,6 +6,7 @@ import de.fhkiel.ki.cathedral.game.*;
 
 import java.io.PrintStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Boffin implements Agent {
 
@@ -35,6 +36,9 @@ public class Boffin implements Agent {
 
         if (possiblePlacements.isEmpty()) {
             return Optional.empty();
+        } else if (possiblePlacements.size() == 1) {
+            // if there is only one possible placement, play it
+            return possiblePlacements.stream().findFirst();
         }
 
         // if it's the first turn for black, play a big building at a wall far away from the cathedral
@@ -65,10 +69,24 @@ public class Boffin implements Agent {
         }
 
         // filter the calculatedPlacements map so that only the placements with the best score remain
-        List<Placement> bestPlacements = calculatedPlacements.keySet().stream().filter(placement -> calculatedPlacements.get(placement) == bestEvalScore).toList();
+        Map<Placement, Integer> finalCalculatedPlacements = calculatedPlacements;
+        Set<Placement> bestPlacements = calculatedPlacements.keySet().stream().filter(placement -> finalCalculatedPlacements.get(placement) == bestEvalScore).collect(Collectors.toSet());
+        System.out.println("Best placements: " + bestPlacements.size());
 
-        // return the placement with the best score
-        return Optional.of(bestPlacements.get(new Random().nextInt(bestPlacements.size())));
+
+
+        if (bestPlacements.size() > 1) {
+            // if there are multiple placements with the same score, evaluate the future ones
+            console.println("Found " + bestPlacements.size() + " good moves.");
+            console.println("Evaluating which to play...");
+
+
+            console.println("Playing random move.");
+            return Optional.of(bestPlacements.stream().toList().get(new Random().nextInt(bestPlacements.size())));
+        } else {
+            console.println("Found only one good move.");
+            return bestPlacements.stream().findFirst();
+        }
     }
 
     @Override
@@ -80,9 +98,9 @@ public class Boffin implements Agent {
     public static int evaluateGameState(int lastTurnNumber, Board board, Evaluator eval, boolean printEval) {
 
         int scoreEval = eval.score(board);
-        int areaEval = eval.area(board);
+        int areaEval = eval.area(board) / 2;
         // the game does not allow capturing area until the 2nd turn so no need to calculate potential area
-        int potArea = lastTurnNumber <= 1 ? 0 : eval.potentialArea();
+        int potArea = lastTurnNumber <= 1 ? 0 : eval.potentialArea(board);
         int sum = scoreEval + areaEval + potArea;
 
         // print the evaluation if desired

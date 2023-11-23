@@ -21,9 +21,10 @@ public class Evaluator {
         return board.score().get(Color.Black) - board.score().get(Color.White);
     }
 
-    public int potentialAreaInNextTurn(Color color) {
-        int currentArea = area(helper.getBoard());
-        int potAreaEval = currentArea;
+    public int potentialInNextTurn(Board board, Color color) {
+        int currentArea = area(board);
+        int currentScore = score(board);
+        int potEval = currentArea + currentScore;
 
         // go through all possible moves, check if the area is bigger than before
         Set<Placement> availableMoves = helper.getAvailableMovesFor(color);
@@ -34,32 +35,33 @@ public class Evaluator {
                 continue;
             }
 
-            Board board = helper.getBoard().copy();
-            if (board.placeBuilding(availableMove)) {
-                int potArea = area(board);
+            Board boardCopy = helper.getBoard().copy();
+            if (boardCopy.placeBuilding(availableMove)) {
+                int potArea = area(boardCopy);
+                int potScore = score(boardCopy);
                 // if the potential area is bigger than before, save the difference
 
                 // if player white:
                 if (color == Color.White) {
-                    if (potAreaEval < (potArea - currentArea)) {
-                        potAreaEval = (potArea - currentArea);
+                    if (potEval < (potArea + potScore - currentArea - currentScore)) {
+                        potEval = (potArea + potScore);
                     }
                 } else {
                     // else player black
-                    if (potAreaEval > (potArea - currentArea)) {
-                        potAreaEval = (potArea - currentArea);
+                    if (potEval > (potArea + potScore - currentArea - currentScore)) {
+                        potEval = (potArea + potScore);
                     }
                 }
             }
         }
 
-        return potAreaEval;
+        return potEval;
     }
 
 
-    public int potentialArea() {
+    public int potentialArea(Board board) {
         // as black potential area returns negative number, to keep it negative, we add instead of subtracting
-        return potentialAreaInNextTurn(Color.White) + potentialAreaInNextTurn(Color.Black);
+        return potentialInNextTurn(board, Color.White) + potentialInNextTurn(board, Color.Black);
     }
 
     public int area(Board board) {
