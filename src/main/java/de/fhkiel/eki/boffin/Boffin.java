@@ -35,6 +35,7 @@ public class Boffin implements Agent {
         console.println("Calculating turn Nr: " + lastTurnNumber + " for " + game.getCurrentPlayer().name() + "...");
 
 
+        // check if the game has been reset
         if (lastTurnNumber <= 1) {
             gameState = GameState.EarlyGame;
         }
