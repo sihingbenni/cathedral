@@ -72,12 +72,11 @@ public class Boffin implements Agent {
                     // place the infirmary on the opposite side of the cathedral
                     Placement cathedral = game.getBoard().getPlacedBuildings().get(0);
 
+                    // calculate place opposite of cathedral
                     int x = cathedral.x() > 4 ? 3 : 6;
+                    int y = cathedral.y() > 4 ? 2 : 7;
 
-                    if (cathedral.y() > 4) {
-                        return Optional.of(new Placement(new Position(x, 2), Direction._0, Building.Black_Infirmary));
-                    } else
-                        return Optional.of(new Placement(new Position(x, 7), Direction._180, Building.Black_Infirmary));
+                    return Optional.of(new Placement(new Position(x, y), Direction._0, Building.Black_Infirmary));
                 }
                 break;
             case MidGame:
