@@ -30,6 +30,8 @@ public class Boffin implements Agent {
     @Override
     public Optional<Placement> calculateTurn(Game game, int timeForTurn, int timeBonus) {
 
+        long start = System.currentTimeMillis();
+
         int lastTurnNumber = game.lastTurn().getTurnNumber();
         console.println("=====================================");
         console.println("Calculating turn Nr: " + lastTurnNumber + " for " + game.getCurrentPlayer().name() + "...");
@@ -41,8 +43,14 @@ public class Boffin implements Agent {
         }
 
         // get all possible placements
-        Set<Building> placeableBuildings = new HashSet<>(game.getPlacableBuildings(game.getCurrentPlayer()));
-        Set<Placement> possiblePlacements = new HashSet<>(placeableBuildings.stream().map(building -> building.getPossiblePlacements(game)).flatMap(Collection::stream).toList());
+        Set<Placement> possiblePlacements = game.getPlacableBuildings(game.getCurrentPlayer())
+                .stream()
+                .map(building -> building.getPossiblePlacements(game))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+
+        long timePossiblePlacements = System.currentTimeMillis();
+        console.println("retrieving possible placements took: " + (timePossiblePlacements - start) + "ms");
 
         console.println(game.getCurrentPlayer().name() + " has " + possiblePlacements.size() + " possible moves.");
 
@@ -78,7 +86,7 @@ public class Boffin implements Agent {
 
                     return Optional.of(new Placement(new Position(x, y), Direction._0, Building.Black_Infirmary));
                 }
-                break;
+
             case MidGame:
                 // Multithreaded evaluation of the placements
                 try {
@@ -87,11 +95,11 @@ public class Boffin implements Agent {
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-
+                console.println("calculating and setting placements took: " + (System.currentTimeMillis() - timePossiblePlacements) + "ms");
                 int areaSmaller = 0;
                 // get my current Area
                 int myCurrentArea = Evaluator.area(game.getBoard()).areaForColor(game.getCurrentPlayer());
-
+                System.out.println("My Current Area: " + myCurrentArea);
                 for (Map.Entry<Placement, Evaluation> entry : calculatedPlacements.entrySet()) {
 
                     GeneralEvaluation eval = (GeneralEvaluation) entry.getValue();
@@ -100,10 +108,34 @@ public class Boffin implements Agent {
                         areaSmaller++;
                     }
                 }
-
                 if (areaSmaller < calculatedPlacements.size()) {
-                    // there are placements outside owned territory do not switch to endgame! break instead!
-                    break;
+                    // there are still placements outside of own territory
+                    final int bestEvalScore;
+
+                    // get the score of the best-evaluated placement depending on color (white max; black min)
+                    if (game.getCurrentPlayer() == Color.Black) {
+                        bestEvalScore = Collections.min(calculatedPlacements.values().stream().map(Evaluation::eval).toList());
+                    } else {
+                        bestEvalScore = Collections.max(calculatedPlacements.values().stream().map(Evaluation::eval).toList());
+                    }
+
+
+                    // filter the calculatedPlacements map so that only the placements with the best score remain
+                    Map<Placement, Evaluation> finalCalculatedPlacements = calculatedPlacements;
+                    Set<Placement> bestPlacements = calculatedPlacements.keySet().stream().filter(placement -> finalCalculatedPlacements.get(placement).eval() == bestEvalScore).collect(Collectors.toSet());
+                    System.out.println("Best placements: " + bestPlacements.size());
+                    if (bestPlacements.size() == 1) {
+                        console.println("Found only one good move.");
+                        return bestPlacements.stream().findFirst();
+                    } else {
+
+                        // if there are multiple placements with the same score, evaluate the future ones
+                        console.println("Found " + bestPlacements.size() + " good moves.");
+                        console.println("Playing random move.");
+
+                        return Optional.of(bestPlacements.stream().toList().get(new Random().nextInt(bestPlacements.size())));
+
+                    }
                 } else {
                     // there are only placements inside owned territory, switch to endgame
                     gameState = GameState.EndGame;
@@ -112,46 +144,49 @@ public class Boffin implements Agent {
                 }
 
             case EndGame:
-                // Multithreaded evaluation of the placements
-                try {
-                    BoffinsManager manager = new BoffinsManager();
-                    calculatedPlacements = manager.manageArea(game, possiblePlacements);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                // breadth-first search for the best placement of all possible placements
+
+                Board board = game.getBoard().copy();
+                List<Placement> finalTurns = new ArrayList<>();
+
+                List<Placement> bestTurns = breadthFirstSearch(board, finalTurns, game.getCurrentPlayer());
+                System.out.println("Best Turns Size: " + bestTurns.size());
+
+            default:
+                throw new RuntimeException("Unknown GameState!");
+        }
+    }
+
+    private List<Placement> breadthFirstSearch(Board board, List<Placement> finalTurns, Color currentPlayer) {
+
+        if (board.score().get(currentPlayer) == 0) {
+            return finalTurns;
+        }
+
+        // how to only return the one list of turns which leads to a score of 0? Would a depth first search be better?
+
+        // get all possible placements and then place each possible placement on a copy of the board and
+        // if it is a successfull turn, add it to the list of final turns and call the method again with the copy
+        // of the board
+        for (Building building : board.getPlacableBuildings(currentPlayer)) {
+            Set<Placement> placements = building.getPossiblePlacements(board);
+            System.out.println("Placements Size: " + placements.size());
+            for (Placement placement : placements) {
+                Board boardCopy = board.copy();
+                boolean successfullTurn = boardCopy.placeBuilding(placement, false);
+                if (successfullTurn) {
+                    System.out.println("placement is added: " + placement);
+                    finalTurns.add(placement);
+
+                    breadthFirstSearch(boardCopy, finalTurns, currentPlayer);
                 }
-                break;
+            }
         }
 
+        System.out.println("Score: " + board.score().get(currentPlayer));
 
-        final int bestEvalScore;
-
-        // get the score of the best-evaluated placement depending on color (white max; black min)
-        if (game.getCurrentPlayer() == Color.Black) {
-            bestEvalScore = Collections.min(calculatedPlacements.values().stream().map(Evaluation::eval).toList());
-        } else {
-            bestEvalScore = Collections.max(calculatedPlacements.values().stream().map(Evaluation::eval).toList());
-        }
-
-
-        // filter the calculatedPlacements map so that only the placements with the best score remain
-        Map<Placement, Evaluation> finalCalculatedPlacements = calculatedPlacements;
-        Set<Placement> bestPlacements = calculatedPlacements.keySet().stream().filter(placement -> finalCalculatedPlacements.get(placement).eval() == bestEvalScore).collect(Collectors.toSet());
-
-
-        System.out.println("Best placements: " + bestPlacements.size());
-
-
-        if (bestPlacements.size() == 1) {
-            console.println("Found only one good move.");
-            return bestPlacements.stream().findFirst();
-        } else {
-
-            // if there are multiple placements with the same score, evaluate the future ones
-            console.println("Found " + bestPlacements.size() + " good moves.");
-            console.println("Playing random move.");
-
-            return Optional.of(bestPlacements.stream().toList().get(new Random().nextInt(bestPlacements.size())));
-        }
+        System.out.println("Final Turn Liste: " + finalTurns.size());
+        return finalTurns;
     }
 
     @Override

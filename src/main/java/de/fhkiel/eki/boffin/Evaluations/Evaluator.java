@@ -60,7 +60,7 @@ public class Evaluator {
     }
 
     public static AreaEvaluation area(Board board) {
-        // TODO welche Gebäude passen eigentlich in dieses Gebiet rein.
+        // TO-DO welche Gebäude passen eigentlich in dieses Gebiet rein.
 
         int areaBlack = 0;
         int areaWhite = 0;

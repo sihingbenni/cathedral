@@ -59,7 +59,10 @@ public class BoffinsManager {
         System.out.println("Ende, Arbeit fertig! Anzahl an evaluated Placements: " + AreaOptimization.finishedCalculations.size());
 
         // combine each Map to one big one, if there are duplicate keys, the first one is taken
-        Map<Placement, Evaluation> results = AreaOptimization.finishedCalculations.stream().flatMap(map -> map.entrySet().stream()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (eval1, eval2) -> eval1));
+        Map<Placement, Evaluation> results = AreaOptimization.finishedCalculations
+                .stream()
+                .flatMap(map -> map.entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (eval1, eval2) -> eval1));
 
 
         // clear the finishedCalculations list
