@@ -1,6 +1,7 @@
 package de.fhkiel.eki.boffin;
 
 import de.fhkiel.eki.boffin.Evaluations.*;
+import de.fhkiel.eki.helper.HelperFunction;
 import de.fhkiel.eki.work.BoffinsManager;
 import de.fhkiel.ki.cathedral.ai.Agent;
 import de.fhkiel.ki.cathedral.game.*;
@@ -9,10 +10,13 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static de.fhkiel.eki.helper.HelperFunction.getAllPossiblePlacementsFor;
+
 public class Boffin implements Agent {
 
+    static long remainingTime = 120_000;
+    long startTime;
     static PrintStream console;
-
     private GameState gameState;
 
     @Override
@@ -30,7 +34,7 @@ public class Boffin implements Agent {
     @Override
     public Optional<Placement> calculateTurn(Game game, int timeForTurn, int timeBonus) {
 
-        long start = System.currentTimeMillis();
+        startTime = System.currentTimeMillis();
 
         int lastTurnNumber = game.lastTurn().getTurnNumber();
         console.println("=====================================");
@@ -43,27 +47,21 @@ public class Boffin implements Agent {
         }
 
         // get all possible placements
-        Set<Placement> possiblePlacements = game.getPlacableBuildings(game.getCurrentPlayer())
-                .stream()
-                .map(building -> building.getPossiblePlacements(game))
-                .flatMap(Collection::stream)
-                .collect(Collectors.toSet());
+        Set<Placement> possiblePlacements = getAllPossiblePlacementsFor(game.getCurrentPlayer(), game.getBoard());
 
-        long timePossiblePlacements = System.currentTimeMillis();
-        console.println("retrieving possible placements took: " + (timePossiblePlacements - start) + "ms");
-
-        console.println(game.getCurrentPlayer().name() + " has " + possiblePlacements.size() + " possible moves.");
+        console.println("I have " + possiblePlacements.size() + " possible moves.");
 
         // check if there are any possible placements, if there is only one move left to play, play it
         if (possiblePlacements.isEmpty()) {
+            console.println("Its your turn");
             return Optional.empty();
         } else if (possiblePlacements.size() == 1) {
             // if there is only one possible placement, play it
-            return possiblePlacements.stream().findFirst();
+            return placeBuilding(possiblePlacements.stream().findFirst());
         }
 
 
-        Map<Placement, Evaluation> calculatedPlacements = new HashMap<>();
+        Map<Placement, Evaluation> calculatedPlacements;
 
         // Switch between the different game states
         switch (gameState) {
@@ -75,7 +73,7 @@ public class Boffin implements Agent {
                 // place the cathedral in the top left corner
                 if (lastTurnNumber == 0) {
                     // place the cathedral random
-                    return Optional.of(possiblePlacements.stream().toList().get(new Random().nextInt(possiblePlacements.size())));
+                    return placeBuilding(Optional.of(possiblePlacements.stream().toList().get(new Random().nextInt(possiblePlacements.size()))));
                 } else if (lastTurnNumber == 1) {
                     // place the infirmary on the opposite side of the cathedral
                     Placement cathedral = game.getBoard().getPlacedBuildings().get(0);
@@ -84,7 +82,7 @@ public class Boffin implements Agent {
                     int x = cathedral.x() > 4 ? 3 : 6;
                     int y = cathedral.y() > 4 ? 2 : 7;
 
-                    return Optional.of(new Placement(new Position(x, y), Direction._0, Building.Black_Infirmary));
+                    return placeBuilding(Optional.of(new Placement(new Position(x, y), Direction._0, Building.Black_Infirmary)));
                 }
 
             case MidGame:
@@ -95,11 +93,10 @@ public class Boffin implements Agent {
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                console.println("calculating and setting placements took: " + (System.currentTimeMillis() - timePossiblePlacements) + "ms");
+                console.println("calculating and setting placements took: " + (System.currentTimeMillis() - startTime) + "ms");
                 int areaSmaller = 0;
                 // get my current Area
                 int myCurrentArea = Evaluator.area(game.getBoard()).areaForColor(game.getCurrentPlayer());
-                System.out.println("My Current Area: " + myCurrentArea);
                 for (Map.Entry<Placement, Evaluation> entry : calculatedPlacements.entrySet()) {
 
                     GeneralEvaluation eval = (GeneralEvaluation) entry.getValue();
@@ -109,7 +106,7 @@ public class Boffin implements Agent {
                     }
                 }
                 if (areaSmaller < calculatedPlacements.size()) {
-                    // there are still placements outside of own territory
+                    // there are still placements outside own territory
                     final int bestEvalScore;
 
                     // get the score of the best-evaluated placement depending on color (white max; black min)
@@ -123,17 +120,17 @@ public class Boffin implements Agent {
                     // filter the calculatedPlacements map so that only the placements with the best score remain
                     Map<Placement, Evaluation> finalCalculatedPlacements = calculatedPlacements;
                     Set<Placement> bestPlacements = calculatedPlacements.keySet().stream().filter(placement -> finalCalculatedPlacements.get(placement).eval() == bestEvalScore).collect(Collectors.toSet());
-                    System.out.println("Best placements: " + bestPlacements.size());
+
                     if (bestPlacements.size() == 1) {
-                        console.println("Found only one good move.");
-                        return bestPlacements.stream().findFirst();
+                        console.println("I found only one good move.");
+                        return placeBuilding(bestPlacements.stream().findFirst());
                     } else {
 
                         // if there are multiple placements with the same score, evaluate the future ones
                         console.println("Found " + bestPlacements.size() + " good moves.");
                         console.println("Playing random move.");
 
-                        return Optional.of(bestPlacements.stream().toList().get(new Random().nextInt(bestPlacements.size())));
+                        return placeBuilding(Optional.of(bestPlacements.stream().toList().get(new Random().nextInt(bestPlacements.size()))));
 
                     }
                 } else {
@@ -144,49 +141,81 @@ public class Boffin implements Agent {
                 }
 
             case EndGame:
-                // breadth-first search for the best placement of all possible placements
 
-                Board board = game.getBoard().copy();
-                List<Placement> finalTurns = new ArrayList<>();
+                long maxTime = System.currentTimeMillis() + 9000;
+                Board bestBoard = fill(game.getBoard(), game.getPlacableBuildings(game.getCurrentPlayer()), maxTime);
 
-                List<Placement> bestTurns = breadthFirstSearch(board, finalTurns, game.getCurrentPlayer());
-                System.out.println("Best Turns Size: " + bestTurns.size());
+                List<Placement> bestPlacements = bestBoard.getPlacedBuildings();
+                List<Placement> currentPlacements = game.getBoard().getPlacedBuildings();
+                bestPlacements.removeAll(currentPlacements);
 
+
+                return placeBuilding(bestPlacements.stream().findFirst());
             default:
                 throw new RuntimeException("Unknown GameState!");
         }
     }
 
-    private List<Placement> breadthFirstSearch(Board board, List<Placement> finalTurns, Color currentPlayer) {
+    private Optional<Placement> placeBuilding(Optional<Placement> placement) {
+        long tookTime = System.currentTimeMillis() - startTime;
+        if(tookTime > 10_000) {
+            remainingTime -= tookTime - 10_000;
+            console.println("I used " + (tookTime - 10_000) / 1000 + "s more than I should have.");
+            console.println("I have: " + (remainingTime / 1000) + "s left.");
+        }
+        console.println("My turn took: " + (tookTime / 1000) + "s");
+        console.println("Its your turn!");
+        return placement;
+    }
 
-        if (board.score().get(currentPlayer) == 0) {
-            return finalTurns;
+
+    private Board fill(Board board, List<Building> buildings, long maxTime) {
+
+        // if the list of buildings is empty, the score is 0 best possible result
+        // return the board
+        if (buildings.isEmpty() || maxTime <= System.currentTimeMillis()) {
+            return board;
         }
 
-        // how to only return the one list of turns which leads to a score of 0? Would a depth first search be better?
+        Board bestBoard = board;
 
-        // get all possible placements and then place each possible placement on a copy of the board and
-        // if it is a successfull turn, add it to the list of final turns and call the method again with the copy
-        // of the board
-        for (Building building : board.getPlacableBuildings(currentPlayer)) {
-            Set<Placement> placements = building.getPossiblePlacements(board);
-            System.out.println("Placements Size: " + placements.size());
-            for (Placement placement : placements) {
-                Board boardCopy = board.copy();
-                boolean successfullTurn = boardCopy.placeBuilding(placement, false);
-                if (successfullTurn) {
-                    System.out.println("placement is added: " + placement);
-                    finalTurns.add(placement);
+        // get all possible placements for the buildings
+        Set<Placement> turnsInOwnArea = HelperFunction.getAllPossiblePlacementsFor(buildings, board);
 
-                    breadthFirstSearch(boardCopy, finalTurns, currentPlayer);
-                }
+        if(turnsInOwnArea.isEmpty()) {
+            return board;
+        }
+
+        for(Placement nextPlacement : turnsInOwnArea) {
+
+            Board nextBoard = board.copy();
+            // get the color of the building
+            Color color = nextPlacement.building().getColor();
+
+            // place the building on the board
+            nextBoard.placeBuilding(nextPlacement);
+            List<Building> unplacedBuildings = new ArrayList<>(buildings);
+            unplacedBuildings.remove(nextPlacement.building());
+
+            Board returnBoard = fill(nextBoard, unplacedBuildings, maxTime);
+
+            if (returnBoard.score().get(color) <= 0) {
+                bestBoard = returnBoard;
             }
+
+            // evaluate the Board
+            if (bestBoard.score().get(color) > returnBoard.score().get(color)) {
+                bestBoard = returnBoard;
+            }
+
+
+            if(maxTime <= System.currentTimeMillis()) {
+                return bestBoard;
+            }
+
         }
 
-        System.out.println("Score: " + board.score().get(currentPlayer));
-
-        System.out.println("Final Turn Liste: " + finalTurns.size());
-        return finalTurns;
+        return bestBoard;
     }
 
     @Override
