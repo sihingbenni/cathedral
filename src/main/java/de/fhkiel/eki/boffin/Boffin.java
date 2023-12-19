@@ -15,6 +15,7 @@ import static de.fhkiel.eki.helper.HelperFunction.getAllPossiblePlacementsFor;
 public class Boffin implements Agent {
 
     static long remainingTime = 120_000;
+    private static List<Placement> finalMoves = new ArrayList<>();
     long startTime;
     static PrintStream console;
     private GameState gameState;
@@ -53,7 +54,7 @@ public class Boffin implements Agent {
 
         // check if there are any possible placements, if there is only one move left to play, play it
         if (possiblePlacements.isEmpty()) {
-            console.println("Its your turn");
+            console.println("Its your turn!");
             return Optional.empty();
         } else if (possiblePlacements.size() == 1) {
             // if there is only one possible placement, play it
@@ -118,8 +119,11 @@ public class Boffin implements Agent {
 
 
                     // filter the calculatedPlacements map so that only the placements with the best score remain
-                    Map<Placement, Evaluation> finalCalculatedPlacements = calculatedPlacements;
-                    Set<Placement> bestPlacements = calculatedPlacements.keySet().stream().filter(placement -> finalCalculatedPlacements.get(placement).eval() == bestEvalScore).collect(Collectors.toSet());
+                    Set<Placement> bestPlacements = calculatedPlacements
+                            .keySet()
+                            .stream()
+                            .filter(placement -> calculatedPlacements.get(placement).eval() == bestEvalScore)
+                            .collect(Collectors.toSet());
 
                     if (bestPlacements.size() == 1) {
                         console.println("I found only one good move.");
@@ -141,24 +145,36 @@ public class Boffin implements Agent {
                 }
 
             case EndGame:
+                console.println("Calculating the End-Game.");
+                console.println("I am going to take my time.");
+                long maxTime = System.currentTimeMillis() + remainingTime + 9000;
 
-                long maxTime = System.currentTimeMillis() + 9000;
-                Board bestBoard = fill(game.getBoard(), game.getPlacableBuildings(game.getCurrentPlayer()), maxTime);
+                // only calculate the best solution once
+                if (finalMoves.isEmpty()) {
+                    Board bestBoard = fill(game.getBoard(), game.getPlacableBuildings(game.getCurrentPlayer()), maxTime);
+                    List<Placement> bestPlacements = bestBoard.getPlacedBuildings();
+                    List<Placement> currentPlacements = game.getBoard().getPlacedBuildings();
+                    bestPlacements.removeAll(currentPlacements);
+                    finalMoves = bestPlacements;
+                    console.println("I found the best solution");
+                } else {
+                    console.println("I already know the best solution");
+                    console.println("Playing the next move.");
+                }
 
-                List<Placement> bestPlacements = bestBoard.getPlacedBuildings();
-                List<Placement> currentPlacements = game.getBoard().getPlacedBuildings();
-                bestPlacements.removeAll(currentPlacements);
+                Placement moveToPlay = finalMoves.get(0);
+                finalMoves.remove(0);
 
-
-                return placeBuilding(bestPlacements.stream().findFirst());
+                return placeBuilding(Optional.of(moveToPlay));
             default:
                 throw new RuntimeException("Unknown GameState!");
         }
     }
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private Optional<Placement> placeBuilding(Optional<Placement> placement) {
         long tookTime = System.currentTimeMillis() - startTime;
-        if(tookTime > 10_000) {
+        if (tookTime > 10_000) {
             remainingTime -= tookTime - 10_000;
             console.println("I used " + (tookTime - 10_000) / 1000 + "s more than I should have.");
             console.println("I have: " + (remainingTime / 1000) + "s left.");
@@ -182,11 +198,11 @@ public class Boffin implements Agent {
         // get all possible placements for the buildings
         Set<Placement> turnsInOwnArea = HelperFunction.getAllPossiblePlacementsFor(buildings, board);
 
-        if(turnsInOwnArea.isEmpty()) {
+        if (turnsInOwnArea.isEmpty()) {
             return board;
         }
 
-        for(Placement nextPlacement : turnsInOwnArea) {
+        for (Placement nextPlacement : turnsInOwnArea) {
 
             Board nextBoard = board.copy();
             // get the color of the building
@@ -209,7 +225,7 @@ public class Boffin implements Agent {
             }
 
 
-            if(maxTime <= System.currentTimeMillis()) {
+            if (maxTime <= System.currentTimeMillis()) {
                 return bestBoard;
             }
 
@@ -228,7 +244,8 @@ public class Boffin implements Agent {
         // reset the gameState
         gameState = GameState.GameOver;
         Agent.super.gameFinished(game);
-        console.println("Game finished!");
+        console.println("Game finished!\n");
+        console.println("gg!");
     }
 
     public static GeneralEvaluation evaluateGameState(Board board, Evaluator eval, boolean printEval) {
