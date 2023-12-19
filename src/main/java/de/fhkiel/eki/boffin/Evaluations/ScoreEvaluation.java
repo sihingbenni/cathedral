@@ -4,4 +4,11 @@ public record ScoreEvaluation(int scoreBlack, int scoreWhite) implements Evaluat
     public int eval() {
         return scoreBlack - scoreWhite;
     }
+
+    @Override
+    public String toString() {
+        return "ScoreEvaluation\t{ Black= " + scoreBlack +
+                ", White= " + scoreWhite +
+                "; Eval= " + this.eval() + '}';
+    }
 }

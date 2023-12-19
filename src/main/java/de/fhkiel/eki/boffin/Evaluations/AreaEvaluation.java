@@ -14,4 +14,11 @@ public record AreaEvaluation(int areaBlack, int areaWhite) implements Evaluation
             return areaWhite;
         }
     }
+
+    @Override
+    public String toString() {
+        return "AreaEvaluation\t{ Black= " + areaBlack +
+                ", White= " + areaWhite +
+                "; Eval= " + this.eval() + '}';
+    }
 }
