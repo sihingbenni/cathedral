@@ -14,7 +14,7 @@ public record GeneralEvaluation(ScoreEvaluation scoreEval, AreaEvaluation areaEv
     public String toString() {
         // print the evaluation if desired
 
-        String string = "==================\n";
+        String string = "\n==================\n";
         string += "----- State Eval -----\n";
         string += scoreEval + "\n";
         string += areaEval + "\n";

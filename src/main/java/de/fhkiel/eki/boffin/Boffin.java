@@ -151,6 +151,7 @@ public class Boffin implements Agent {
 
                 // only calculate the best solution once
                 if (finalMoves.isEmpty()) {
+                    console.println("At maximum this turn is going to take: " + ((10000 + remainingTime) / 1000) + "s");
                     Board bestBoard = fill(game.getBoard(), game.getPlacableBuildings(game.getCurrentPlayer()), maxTime);
                     List<Placement> bestPlacements = bestBoard.getPlacedBuildings();
                     List<Placement> currentPlacements = game.getBoard().getPlacedBuildings();
@@ -245,7 +246,7 @@ public class Boffin implements Agent {
         gameState = GameState.GameOver;
         Agent.super.gameFinished(game);
         console.println("Game finished!\n");
-        console.println("gg!");
+        console.println("gg!\n");
     }
 
     public static GeneralEvaluation evaluateGameState(Board board, Evaluator eval, boolean printEval) {
