@@ -15,7 +15,7 @@ import static de.fhkiel.eki.helper.HelperFunction.getAllPossiblePlacementsFor;
 public class Boffin implements Agent {
 
     static long remainingTime = 120_000;
-    private static List<Placement> finalMoves = new ArrayList<>();
+    private static final Map<Color, List<Placement>> finalMoves = new HashMap<>();
     long startTime;
     static PrintStream console;
     private GameState gameState;
@@ -150,21 +150,21 @@ public class Boffin implements Agent {
                 long maxTime = System.currentTimeMillis() + remainingTime + 9000;
 
                 // only calculate the best solution once
-                if (finalMoves.isEmpty()) {
+                if (finalMoves.get(game.getCurrentPlayer()) == null || finalMoves.get(game.getCurrentPlayer()).isEmpty()) {
                     console.println("At maximum this turn is going to take: " + ((10000 + remainingTime) / 1000) + "s");
                     Board bestBoard = fill(game.getBoard(), game.getPlacableBuildings(game.getCurrentPlayer()), maxTime);
                     List<Placement> bestPlacements = bestBoard.getPlacedBuildings();
                     List<Placement> currentPlacements = game.getBoard().getPlacedBuildings();
                     bestPlacements.removeAll(currentPlacements);
-                    finalMoves = bestPlacements;
+                    finalMoves.put(game.getCurrentPlayer(), bestPlacements);
                     console.println("I found the best solution");
                 } else {
                     console.println("I already know the best solution");
                     console.println("Playing the next move.");
                 }
 
-                Placement moveToPlay = finalMoves.get(0);
-                finalMoves.remove(0);
+                Placement moveToPlay = finalMoves.get(game.getCurrentPlayer()).get(0);
+                finalMoves.get(game.getCurrentPlayer()).remove(0);
 
                 return placeBuilding(Optional.of(moveToPlay));
             default:

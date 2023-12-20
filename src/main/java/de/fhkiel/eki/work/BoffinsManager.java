@@ -1,6 +1,8 @@
 package de.fhkiel.eki.work;
 
 import de.fhkiel.eki.boffin.Evaluations.Evaluation;
+import de.fhkiel.eki.boffin.Evaluations.GeneralEvaluation;
+import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
 
@@ -8,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
 
 // Der Manager verteilt und nutzt die Arbeit
@@ -35,14 +38,22 @@ public class BoffinsManager {
         // work is done stop the workers.
         stop();
 
-        System.out.println("Ende, Arbeit fertig! Anzahl an evaluated Placements: " + TurnEvaluation.finishedCalculations.size());
+
+        BlockingQueue<Map<Placement, GeneralEvaluation>> finishedCalculations;
+        if (game.getCurrentPlayer() == Color.Black) {
+            finishedCalculations = TurnEvaluation.finishedCalculationsBlack;
+        } else {
+            finishedCalculations = TurnEvaluation.finishedCalculationsWhite;
+        }
+        System.out.println("Ende, Arbeit fertig! Anzahl an evaluated Placements: " + finishedCalculations.size());
 
         // combine each Map to one big one, if there are duplicate keys, the first one is taken
-        Map<Placement, Evaluation> results = TurnEvaluation.finishedCalculations.stream().flatMap(map -> map.entrySet().stream()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (eval1, eval2) -> eval1));
+        Map<Placement, Evaluation> results = finishedCalculations.stream().flatMap(map -> map.entrySet().stream()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (eval1, eval2) -> eval1));
 
 
         // clear the finishedCalculations list
-        TurnEvaluation.finishedCalculations.clear();
+        TurnEvaluation.finishedCalculationsBlack.clear();
+        TurnEvaluation.finishedCalculationsWhite.clear();
 
         return results;
     }
