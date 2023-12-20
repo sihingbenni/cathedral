@@ -47,30 +47,6 @@ public class BoffinsManager {
         return results;
     }
 
-    public Map<Placement, Evaluation> manageArea(Game game, Set<Placement> possiblePlacements) throws InterruptedException {
-
-
-        possiblePlacements.forEach(placement -> Work.workToDo.add(new AreaOptimization(game.getBoard().copy(), placement)));
-
-        do Thread.sleep(100); while (!Work.workToDo.isEmpty());
-        // work is done stop the workers.
-        stop();
-
-        System.out.println("Ende, Arbeit fertig! Anzahl an evaluated Placements: " + AreaOptimization.finishedCalculations.size());
-
-        // combine each Map to one big one, if there are duplicate keys, the first one is taken
-        Map<Placement, Evaluation> results = AreaOptimization.finishedCalculations
-                .stream()
-                .flatMap(map -> map.entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (eval1, eval2) -> eval1));
-
-
-        // clear the finishedCalculations list
-        AreaOptimization.finishedCalculations.clear();
-
-        return results;
-    }
-
     public void stop() {
         // alle feuern
         for (Worker worker : workers) {
