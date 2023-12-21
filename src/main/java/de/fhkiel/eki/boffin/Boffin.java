@@ -210,9 +210,10 @@ public class Boffin implements Agent {
             Color color = nextPlacement.building().getColor();
 
             // place the building on the board
-            if (!nextBoard.placeBuilding(nextPlacement)) {
+            if (!nextBoard.placeBuilding(nextPlacement, true)) {
                 continue;
             }
+
             List<Building> unplacedBuildings = new ArrayList<>(buildings);
             unplacedBuildings.remove(nextPlacement.building());
 
