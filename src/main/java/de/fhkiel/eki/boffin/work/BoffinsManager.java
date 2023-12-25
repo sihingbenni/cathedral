@@ -34,7 +34,12 @@ public class BoffinsManager {
         possiblePlacements.forEach(placement -> Work.workToDo.add(new TurnEvaluation(game.getBoard().copy(), placement)));
 
         // Solange weiterarbeiten bis nichts mehr zu tun is
-        do Thread.sleep(100); while (!Work.workToDo.isEmpty());
+        do
+        {
+            //noinspection BusyWait
+            Thread.sleep(100);
+        } while (!Work.workToDo.isEmpty());
+
         // work is done stop the workers.
         stop();
 

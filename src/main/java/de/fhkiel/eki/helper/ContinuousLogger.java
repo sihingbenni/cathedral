@@ -29,17 +29,21 @@ public class ContinuousLogger implements Runnable {
     @Override
     public void run() {
         System.out.println("starting continuous logging.");
-        while (keepRunning()) {
+        do {
+
             try {
+                //noinspection BusyWait
                 Thread.sleep(CONTINUOUS_LOGGING_DELAY);
-                // check again after the sleep, maybe operation has finished
-                if (keepRunning()) {
-                    console.print("...");
-                }
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-        }
+            // check again after the sleep, maybe operation has finished
+            if (keepRunning()) {
+                console.print("...");
+            }
+
+        } while (keepRunning());
+
         // reset after the loop is finished
         doStop = false;
         System.out.println("stopped continuous logging.");
