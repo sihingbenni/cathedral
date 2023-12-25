@@ -1,8 +1,8 @@
-package de.fhkiel.eki.work;
+package de.fhkiel.eki.boffin.work;
 
 import de.fhkiel.eki.boffin.Boffin;
-import de.fhkiel.eki.boffin.Evaluations.Evaluator;
-import de.fhkiel.eki.boffin.Evaluations.GeneralEvaluation;
+import de.fhkiel.eki.boffin.evaluations.Evaluator;
+import de.fhkiel.eki.boffin.evaluations.GeneralEvaluation;
 import de.fhkiel.ki.cathedral.game.Board;
 import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Placement;

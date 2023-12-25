@@ -1,4 +1,4 @@
-package de.fhkiel.eki.boffin.Evaluations;
+package de.fhkiel.eki.boffin.evaluations;
 
 public record NextTurnEvaluation(int nextTurnBlack, int nextTurnWhite) implements Evaluation {
     public int eval() {

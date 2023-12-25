@@ -1,4 +1,4 @@
-package de.fhkiel.eki.boffin.Evaluations;
+package de.fhkiel.eki.boffin.evaluations;
 
 public record GeneralEvaluation(ScoreEvaluation scoreEval, AreaEvaluation areaEval,
                                 NextTurnEvaluation nextTurnEval) implements Evaluation {

@@ -1,7 +1,7 @@
-package de.fhkiel.eki.work;
+package de.fhkiel.eki.boffin.work;
 
-import de.fhkiel.eki.boffin.Evaluations.Evaluation;
-import de.fhkiel.eki.boffin.Evaluations.GeneralEvaluation;
+import de.fhkiel.eki.boffin.evaluations.Evaluation;
+import de.fhkiel.eki.boffin.evaluations.GeneralEvaluation;
 import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
@@ -51,7 +51,7 @@ public class BoffinsManager {
         Map<Placement, Evaluation> results = finishedCalculations.stream().flatMap(map -> map.entrySet().stream()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (eval1, eval2) -> eval1));
 
 
-        // clear the finishedCalculations list
+        // clear the finishedCalculations lists
         TurnEvaluation.finishedCalculationsBlack.clear();
         TurnEvaluation.finishedCalculationsWhite.clear();
 

@@ -1,4 +1,4 @@
-package de.fhkiel.eki.boffin.Evaluations;
+package de.fhkiel.eki.boffin.evaluations;
 
 import de.fhkiel.ki.cathedral.game.Color;
 

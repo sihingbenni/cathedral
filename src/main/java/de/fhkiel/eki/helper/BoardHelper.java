@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class HelperFunction {
+public class BoardHelper {
 
     public static Set<Placement> getAllPossiblePlacementsFor(Color currentPlayer, Board board) {
         return board.getPlacableBuildings(currentPlayer)

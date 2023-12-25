@@ -1,4 +1,4 @@
-package de.fhkiel.eki.work;
+package de.fhkiel.eki.boffin.work;
 
 import java.util.concurrent.TimeUnit;
 
