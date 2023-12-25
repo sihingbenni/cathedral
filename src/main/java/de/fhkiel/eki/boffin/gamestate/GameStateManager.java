@@ -101,6 +101,7 @@ public class GameStateManager {
         console.println("Evaluating placements...");
         calculatingStartTime = System.currentTimeMillis();
 
+        // start a new Thread
         Thread thread = new Thread(continuousLogger);
         thread.start();
     }
@@ -128,11 +129,16 @@ public class GameStateManager {
     public void startCalculatingFinalMoves() {
         console.println("Trying to find an optimal solution.");
         console.println("At maximum this turn is going to take: " + ((10000 + remainingTime) / 1000) + "s");
+
+        // start a new thread.
+        Thread thread = new Thread(continuousLogger);
+        thread.start();
     }
 
     public void endCalculatingFinalMoves() {
         // check
         console.println("I found the best solution");
+        continuousLogger.doStop();
     }
 
     public Set<Placement> calculateTurn() {

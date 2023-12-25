@@ -8,7 +8,11 @@ public class ContinuousLogger implements Runnable {
 
     private final PrintStream console;
 
-    private boolean doStop = false;
+    /**
+     * To stop the Worker.
+     * volatile so that all threads notice the change immediately
+     */
+    private volatile boolean doStop = false;
 
     public ContinuousLogger(PrintStream console) {
         this.console = console;
@@ -28,9 +32,12 @@ public class ContinuousLogger implements Runnable {
         while (keepRunning()) {
             try {
                 Thread.sleep(CONTINUOUS_LOGGING_DELAY);
-                console.print("...");
+                // check again after the sleep, maybe operation has finished
+                if (keepRunning()) {
+                    console.print("...");
+                }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
         // reset after the loop is finished

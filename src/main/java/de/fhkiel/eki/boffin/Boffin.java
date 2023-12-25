@@ -52,7 +52,7 @@ public record Boffin(String name) implements Agent {
         int calculatedSize = calculatedPlacements.size();
         if (calculatedSize == 0) throw new RuntimeException("I have no moves left. This should not have happened.");
         else if (calculatedSize == 1) {
-            console.println("There is only one good move to play...");
+            console.println("There is only one really good move to play...");
         } else {
             console.println("I have " + calculatedSize + " good moves.");
             console.println("Let me choose one at random.");
