@@ -3,6 +3,7 @@ package de.fhkiel.eki.boffin.calculator;
 import de.fhkiel.eki.boffin.evaluations.Evaluation;
 import de.fhkiel.eki.boffin.evaluations.Evaluator;
 import de.fhkiel.eki.boffin.evaluations.GeneralEvaluation;
+import de.fhkiel.eki.boffin.gamestate.GameStateManager;
 import de.fhkiel.eki.boffin.work.BoffinsManager;
 import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
@@ -17,6 +18,9 @@ public class MidGameTurnCalculator implements TurnCalculator {
 
     @Override
     public Set<Placement> calculateTurn(Game game, Set<Placement> possiblePlacements) {
+        // get the right gameStateManager
+        GameStateManager gameStateManager = getGameStateManager(game.getCurrentPlayer());
+
         gameStateManager.startEvaluatingPlacements();
         // Multithreaded evaluation of the placements
         try {

@@ -5,6 +5,6 @@ import de.fhkiel.ki.cathedral.gui.CathedralGUI;
 
 public class Main {
     public static void main(String[] args) {
-        CathedralGUI.start(new Boffin("Boffin"));
+        CathedralGUI.start(new Boffin());
     }
 }

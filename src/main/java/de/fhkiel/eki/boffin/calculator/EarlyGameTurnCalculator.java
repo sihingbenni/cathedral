@@ -1,6 +1,7 @@
 package de.fhkiel.eki.boffin.calculator;
 
 import de.fhkiel.eki.boffin.gamestate.GameState;
+import de.fhkiel.eki.boffin.gamestate.GameStateManager;
 import de.fhkiel.ki.cathedral.game.*;
 
 import java.util.Collections;
@@ -9,10 +10,13 @@ import java.util.Set;
 public class EarlyGameTurnCalculator implements TurnCalculator {
     @Override
     public Set<Placement> calculateTurn(Game game, Set<Placement> possiblePlacements) {
+        // get the right gameStateManager
+        GameStateManager gameStateManager = getGameStateManager(game.getCurrentPlayer());
         int turnNumber = game.lastTurn().getTurnNumber();
+
         Board board = game.getBoard();
         gameStateManager.switchGameState(GameState.MidGame);
-        
+
         switch (turnNumber) {
             case 0 -> {
                 // return all possible placements, one will be chosen by random

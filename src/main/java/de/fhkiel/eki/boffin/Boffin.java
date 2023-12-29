@@ -4,6 +4,7 @@ import de.fhkiel.eki.boffin.evaluations.*;
 import de.fhkiel.eki.boffin.gamestate.GameStateManager;
 import de.fhkiel.ki.cathedral.ai.Agent;
 import de.fhkiel.ki.cathedral.game.Board;
+import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
 
@@ -14,29 +15,47 @@ import java.util.Set;
 
 import static de.fhkiel.eki.helper.BoardHelper.getAllPossiblePlacementsFor;
 
-public record Boffin(String name) implements Agent {
+public class Boffin implements Agent {
 
-    private static GameStateManager gameStateManager;
+    private static final String name = "Boffin";
+
+    private static GameStateManager blackGameStateManager;
+    private static GameStateManager whiteGameStateManager;
+
+    private GameStateManager currentGameStateManager;
 
     private static PrintStream console;
+
+
+    @Override
+    public String name() {
+        return name;
+    }
 
     @Override
     public void initialize(Game game, PrintStream console) {
         Agent.super.initialize(game, console);
         Boffin.console = console;
-        gameStateManager = new GameStateManager(game, console);
+        blackGameStateManager = new GameStateManager(game, console, Color.Black);
+        whiteGameStateManager = new GameStateManager(game, console, Color.White);
     }
 
     @Override
     public Optional<Placement> calculateTurn(Game game, int timeForTurn, int timeBonus) {
 
+        if (game.getCurrentPlayer() == Color.Black) {
+            currentGameStateManager = blackGameStateManager;
+        } else {
+            currentGameStateManager = whiteGameStateManager;
+        }
+
         // notify the gameManager that a new turn started
-        gameStateManager.startTurn(game);
+        currentGameStateManager.startTurn(game);
 
         // get all possible placements for the current Player
         Set<Placement> possiblePlacements = getAllPossiblePlacementsFor(game.getCurrentPlayer(), game.getBoard());
 
-        gameStateManager.nrOfPossiblePlacementsCalculated(possiblePlacements);
+        currentGameStateManager.nrOfPossiblePlacementsCalculated(possiblePlacements);
 
         // check if there are any possible placements, if there is only one move left to play, play it
         if (possiblePlacements.isEmpty()) {
@@ -47,7 +66,7 @@ public record Boffin(String name) implements Agent {
         }
 
         // calculate the best placements
-        Set<Placement> calculatedPlacements = gameStateManager.calculateTurn();
+        Set<Placement> calculatedPlacements = currentGameStateManager.calculateTurn();
 
         int calculatedSize = calculatedPlacements.size();
         if (calculatedSize == 0) throw new RuntimeException("I have no moves left. This should not have happened.");
@@ -65,7 +84,7 @@ public record Boffin(String name) implements Agent {
 
 
     private Optional<Placement> placeBuilding(Placement placement) {
-        gameStateManager.finishTurn();
+        currentGameStateManager.finishTurn();
         return Optional.of(placement);
     }
 
@@ -76,7 +95,7 @@ public record Boffin(String name) implements Agent {
 
     @Override
     public void gameFinished(Game game) {
-        gameStateManager.finishGame();
+        currentGameStateManager.finishGame();
         Agent.super.gameFinished(game);
     }
 

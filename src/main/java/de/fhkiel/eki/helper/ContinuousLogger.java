@@ -35,7 +35,7 @@ public class ContinuousLogger implements Runnable {
                 //noinspection BusyWait
                 Thread.sleep(CONTINUOUS_LOGGING_DELAY);
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                System.out.println("interrupted continuous logging.");
             }
             // check again after the sleep, maybe operation has finished
             if (keepRunning()) {

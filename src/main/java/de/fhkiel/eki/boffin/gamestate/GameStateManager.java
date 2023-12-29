@@ -1,6 +1,7 @@
 package de.fhkiel.eki.boffin.gamestate;
 
 import de.fhkiel.eki.helper.ContinuousLogger;
+import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
 
@@ -11,13 +12,17 @@ public class GameStateManager {
 
     private static final int MAX_TURN_TIME = 9_000;
     private static final int MAX_TURN_TIME_BONUS = 120_000;
-    private static GameStateManager instance;
+    private static GameStateManager whiteGameStateManager;
+    private static GameStateManager blackGameStateManager;
+
     private Game game;
+    private Color color;
     private final PrintStream console;
 
-    private GameState gameState;
+    public GameState gameState;
 
     ContinuousLogger continuousLogger;
+    Thread loggerThread;
 
 
     /**
@@ -36,16 +41,31 @@ public class GameStateManager {
     Set<Placement> possiblePlacementsInTurn;
 
 
-    public GameStateManager(Game game, PrintStream console) {
+    public GameStateManager(Game game, PrintStream console, Color color) {
         this.console = console;
         this.game = game;
         this.continuousLogger = new ContinuousLogger(console);
+        this.setGameStateManagers(color);
+        this.initGameState();
     }
 
-    public static GameStateManager getInstance() {
-        return instance;
+    public void setGameStateManagers(Color color) {
+        if (color == Color.Black) {
+            blackGameStateManager = this;
+            this.color = Color.Black;
+        } else {
+            whiteGameStateManager = this;
+            this.color = Color.White;
+        }
     }
 
+    public static GameStateManager getGameStateManagerByColor(Color color) {
+        if (color == Color.Black) {
+            return blackGameStateManager;
+        } else {
+            return whiteGameStateManager;
+        }
+    }
 
     /**
      * Initializes the game with the default values.
@@ -53,7 +73,6 @@ public class GameStateManager {
     private void initGameState() {
         this.gameState = GameState.EarlyGame;
         this.remainingTime = MAX_TURN_TIME_BONUS;
-        instance = this;
     }
 
     /**
@@ -74,6 +93,7 @@ public class GameStateManager {
 
         // check if the game has been reset, if so, reinitialize the game state
         if (turnNumber <= 1) initGameState();
+        console.println("Starting turn " + turnNumber + " for " + game.getCurrentPlayer().name());
     }
 
     public void nrOfPossiblePlacementsCalculated(Set<Placement> possiblePlacementsInTurn) {
@@ -101,9 +121,7 @@ public class GameStateManager {
         console.println("Evaluating placements...");
         calculatingStartTime = System.currentTimeMillis();
 
-        // start a new Thread
-        Thread thread = new Thread(continuousLogger);
-        thread.start();
+        startContinuousLogging();
     }
 
     public void endEvaluatingPlacements() {
@@ -112,7 +130,7 @@ public class GameStateManager {
     }
 
     public void switchGameState(GameState newState) {
-        System.out.println("Switching to " + newState.name() + ".");
+        System.out.println(this + " Switching to " + newState.name() + ".");
         gameState = newState;
     }
 
@@ -130,9 +148,7 @@ public class GameStateManager {
         console.println("Trying to find an optimal solution.");
         console.println("At maximum this turn is going to take: " + ((10000 + remainingTime) / 1000) + "s");
 
-        // start a new thread.
-        Thread thread = new Thread(continuousLogger);
-        thread.start();
+        startContinuousLogging();
     }
 
     public void endCalculatingFinalMoves() {
@@ -156,5 +172,22 @@ public class GameStateManager {
             console.println("I have: " + remainingTime / 1_000 + "s and " + (remainingTime % 1_000) + "ms buffer left.");
         }
         console.println("Its your turn!\n");
+    }
+
+    private void startContinuousLogging() {
+        // interrupt eventually still running thread
+        if (loggerThread != null) loggerThread.interrupt();
+        // start a new Thread
+        loggerThread = new Thread(continuousLogger);
+        loggerThread.start();
+    }
+
+    @Override
+    public String toString() {
+        return "GameStateManager{" +
+                "color=" + color.name() +
+                ", gameState=" + gameState +
+                ", remainingTime=" + remainingTime +
+                '}';
     }
 }
