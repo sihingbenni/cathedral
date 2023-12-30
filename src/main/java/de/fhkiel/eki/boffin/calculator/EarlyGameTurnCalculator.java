@@ -38,8 +38,12 @@ public class EarlyGameTurnCalculator implements TurnCalculator {
                 // return the placement
                 return Collections.singleton(infirmaryPlacement);
             }
-            default -> throw new RuntimeException("EarlyGameTurnCalculator should not be called" +
-                    " after the first two turns.");
+            default -> {
+                // EarlyGameTurnCalculator should not be called after the first two turns.
+                // switch to mid-game and return its turn
+                gameStateManager.switchGameState(GameState.MidGame);
+                return gameStateManager.calculateTurn();
+            }
         }
 
 

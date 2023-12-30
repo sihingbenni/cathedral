@@ -3,13 +3,16 @@ package de.fhkiel.eki.boffin.calculator;
 import de.fhkiel.eki.boffin.evaluations.Evaluation;
 import de.fhkiel.eki.boffin.evaluations.Evaluator;
 import de.fhkiel.eki.boffin.evaluations.GeneralEvaluation;
+import de.fhkiel.eki.boffin.gamestate.GameState;
 import de.fhkiel.eki.boffin.gamestate.GameStateManager;
 import de.fhkiel.eki.boffin.work.BoffinsManager;
 import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class MidGameTurnCalculator implements TurnCalculator {
@@ -43,7 +46,9 @@ public class MidGameTurnCalculator implements TurnCalculator {
         }
         if (areaSmaller >= calculatedPlacements.size()) {
             // there are only placements inside owned territory, switch to endgame
-            return gameStateManager.switchToEndgameCalculations();
+            gameStateManager.switchGameState(GameState.EndGame);
+            // and return the new calculated placement
+            return gameStateManager.calculateTurn();
         } else {
             // there are still placements outside own territory
             final int bestEvalScore;

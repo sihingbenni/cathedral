@@ -19,7 +19,7 @@ public class GameStateManager {
     private Color color;
     private final PrintStream console;
 
-    public GameState gameState;
+    private GameState gameState;
 
     ContinuousLogger continuousLogger;
     Thread loggerThread;
@@ -132,12 +132,6 @@ public class GameStateManager {
     public void switchGameState(GameState newState) {
         System.out.println(this + " Switching to " + newState.name() + ".");
         gameState = newState;
-    }
-
-    public Set<Placement> switchToEndgameCalculations() {
-        switchGameState(GameState.EndGame);
-        // gameState is now EndGame, return the placements from that calculation
-        return gameState.calculateTurn(game, possiblePlacementsInTurn);
     }
 
     public long getRemainingTurnTime() {

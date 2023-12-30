@@ -15,7 +15,6 @@ public interface TurnCalculator {
     }
 
     /**
-     *
      * @param color {@link Color} the current Player
      * @return {@link GameStateManager} the matching GameStateManager for the color
      */
