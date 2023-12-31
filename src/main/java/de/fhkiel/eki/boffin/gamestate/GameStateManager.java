@@ -1,5 +1,6 @@
 package de.fhkiel.eki.boffin.gamestate;
 
+import de.fhkiel.eki.boffin.calculator.EndGameTurnCalculator;
 import de.fhkiel.eki.helper.ContinuousLogger;
 import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
@@ -24,6 +25,7 @@ public class GameStateManager {
     ContinuousLogger continuousLogger;
     Thread loggerThread;
 
+    int lastTurnNumber = -1;
 
     /**
      * The remaining time in milliseconds at maximum 2 minutes.
@@ -87,13 +89,17 @@ public class GameStateManager {
         int turnNumber = game.lastTurn().getTurnNumber();
 
         // if a turn is started after gameOver (e.g. undo) reset to mid-game.
-        if (gameState == GameState.GameOver) {
+        if (gameState == GameState.GameOver || turnNumber <= lastTurnNumber) {
             gameState = GameState.MidGame;
+            // reset the final results because some buildings might be at different positions
+            EndGameTurnCalculator.resetFinalResults();
+            System.out.println("Game State changed because of undo");
         }
 
         // check if the game has been reset, if so, reinitialize the game state
         if (turnNumber <= 1) initGameState();
         console.println("Starting turn " + turnNumber + " for " + game.getCurrentPlayer().name());
+        lastTurnNumber = turnNumber;
     }
 
     public void nrOfPossiblePlacementsCalculated(Set<Placement> possiblePlacementsInTurn) {

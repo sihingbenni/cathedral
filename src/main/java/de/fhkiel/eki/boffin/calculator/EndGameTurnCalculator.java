@@ -98,4 +98,8 @@ public class EndGameTurnCalculator implements TurnCalculator {
 
         return bestBoard;
     }
+
+    public static void resetFinalResults() {
+        finalMoves.clear();
+    }
 }
