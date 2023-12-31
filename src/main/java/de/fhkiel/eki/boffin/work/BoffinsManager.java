@@ -1,6 +1,5 @@
 package de.fhkiel.eki.boffin.work;
 
-import de.fhkiel.eki.boffin.evaluations.Evaluation;
 import de.fhkiel.eki.boffin.evaluations.GeneralEvaluation;
 import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
@@ -27,7 +26,7 @@ public class BoffinsManager {
         }
     }
 
-    public Map<Placement, Evaluation> manageEvaluators(Game game, Set<Placement> possiblePlacements) throws InterruptedException {
+    public Map<Placement, GeneralEvaluation> manageEvaluators(Game game, Set<Placement> possiblePlacements) throws InterruptedException {
 
 
         // Starten der Kalkulation
@@ -52,7 +51,7 @@ public class BoffinsManager {
         System.out.println("Ende, Arbeit fertig! Anzahl an evaluated Placements: " + finishedCalculations.size());
 
         // combine each Map to one big one, if there are duplicate keys, the first one is taken
-        Map<Placement, Evaluation> results = finishedCalculations.stream().flatMap(map -> map.entrySet().stream()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (eval1, eval2) -> eval1));
+        Map<Placement, GeneralEvaluation> results = finishedCalculations.stream().flatMap(map -> map.entrySet().stream()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (eval1, eval2) -> eval1));
 
 
         // clear the finishedCalculations lists

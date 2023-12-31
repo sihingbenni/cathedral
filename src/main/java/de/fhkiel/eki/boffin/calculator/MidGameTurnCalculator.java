@@ -1,5 +1,6 @@
 package de.fhkiel.eki.boffin.calculator;
 
+import de.fhkiel.eki.boffin.evaluations.AreaEvaluation;
 import de.fhkiel.eki.boffin.evaluations.Evaluation;
 import de.fhkiel.eki.boffin.evaluations.Evaluator;
 import de.fhkiel.eki.boffin.evaluations.GeneralEvaluation;
@@ -10,6 +11,7 @@ import de.fhkiel.ki.cathedral.game.Color;
 import de.fhkiel.ki.cathedral.game.Game;
 import de.fhkiel.ki.cathedral.game.Placement;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -17,7 +19,7 @@ import java.util.stream.Collectors;
 
 public class MidGameTurnCalculator implements TurnCalculator {
 
-    private Map<Placement, Evaluation> calculatedPlacements;
+    private Map<Placement, GeneralEvaluation> calculatedPlacements;
 
     @Override
     public Set<Placement> calculateTurn(Game game, Set<Placement> possiblePlacements) {
@@ -33,21 +35,30 @@ public class MidGameTurnCalculator implements TurnCalculator {
             throw new RuntimeException(e);
         }
         gameStateManager.endEvaluatingPlacements();
-        int areaSmaller = 0;
         // get my current Area
         int myCurrentArea = Evaluator.area(game.getBoard()).areaForColor(game.getCurrentPlayer());
-        for (Map.Entry<Placement, Evaluation> entry : calculatedPlacements.entrySet()) {
 
-            GeneralEvaluation eval = (GeneralEvaluation) entry.getValue();
-//                    System.out.println("My Current Area: " + myCurrentArea + " Evaluated Area: " + eval.areaEval().areaForColor(game.getCurrentPlayer()));
-            if (myCurrentArea > eval.areaEval().areaForColor(game.getCurrentPlayer())) {
-                areaSmaller++;
+        Color myColor = game.getCurrentPlayer();
+
+        Collection<GeneralEvaluation> evaluations = calculatedPlacements.values();
+
+        boolean outsideMovesRemain = false;
+
+        // search all evaluations for a move where the area shrunk
+        for (GeneralEvaluation evaluation : evaluations) {
+            AreaEvaluation areaEval = evaluation.areaEval();
+            if (areaEval.areaForColor(myColor) >= myCurrentArea) {
+                // a move has been found that is outside owned area.
+                outsideMovesRemain = true;
+                // break to interrupt the loop
+                break;
             }
         }
-        if (areaSmaller >= calculatedPlacements.size()) {
-            // there are only placements inside owned territory, switch to endgame
+        // check if a move outside owned area was found
+        if (!outsideMovesRemain) {
+            // there are only placements inside owned territory
             gameStateManager.switchGameState(GameState.EndGame);
-            // and return the new calculated placement
+            // return the end-game calculated placements
             return gameStateManager.calculateTurn();
         } else {
             // there are still placements outside own territory
